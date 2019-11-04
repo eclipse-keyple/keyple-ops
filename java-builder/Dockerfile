@@ -26,14 +26,15 @@ RUN mkdir -p "/opt/gradle" \
  && gradle --version
 
 # Android installation
-ENV ANDROID_SDK="/opt/android-sdk"
-RUN curl -fLsSo sdk-tools.zip "https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip" \
+ENV ANDROID_HOME="/opt/android-sdk"
+RUN umask g+w \
+ && curl -fLsSo sdk-tools.zip "https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip" \
  && echo -n "Files extracted: " \
- && unzip -d "${ANDROID_SDK}" sdk-tools.zip | grep -c 'inflating:' \
+ && unzip -d "${ANDROID_HOME}" sdk-tools.zip | grep -c 'inflating:' \
  && mkdir -p "~/.android" \
  && touch "~/.android/repositories.cfg" \
- && update-alternatives --install "/usr/bin/sdkmanager" sdkmanager "${ANDROID_SDK}/tools/bin/sdkmanager" 1 \
- && yes | sdkmanager --sdk_root=${ANDROID_SDK} --licenses \
+ && update-alternatives --install "/usr/bin/sdkmanager" sdkmanager "${ANDROID_HOME}/tools/bin/sdkmanager" 1 \
+ && yes | sdkmanager --sdk_root=${ANDROID_HOME} --licenses \
  && rm -rf "tools" "sdk-tools.zip" \
  && echo -n "Successfully installed " \
  && sdkmanager --list | sed -n '1,/Available/p' | head -n -2
@@ -45,7 +46,9 @@ WORKDIR "/var/build"
 
 ### user name recognition at runtime w/ an arbitrary uid - for OpenShift deployments
 COPY uid_entrypoint /usr/local/bin/uid_entrypoint
-RUN chmod +x /usr/local/bin/uid_entrypoint
+RUN chmod u+x /usr/local/bin/uid_entrypoint && \
+    chgrp 0 /usr/local/bin/uid_entrypoint && \
+    chmod g=u /usr/local/bin/uid_entrypoint /etc/passwd
 ### end
 
 # Setting Jenkins user
@@ -54,7 +57,7 @@ USER jenkins:root
 ARG USER="jenkins"
 ENV USER_NAME="${USER}"
 ENV HOME="/home/${USER}"
-ENV GRADLE_USER_HOME="/home/${USER}/.gradle"
+ENV GRADLE_USER_HOME="/home/${USER}/agent/.gradle"
 
 RUN umask g+w \
  && chmod g+w ~ \
@@ -71,6 +74,10 @@ RUN umask g+w \
  && cd "keyple-java" \
  && gradle wrapper --gradle-version 4.5.1 \
  && ./gradlew :java:component:keyple-core:uploadArchives --info \
+ && ./gradlew :java:component:keyple-calypso:uploadArchives --info \
+ && ./gradlew :java:component:keyple-plugin:keyple-plugin-remotese:assemble --info \
+ && ./gradlew -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-nfc:uploadArchives \
+ && ./gradlew -b ./java/example/calypso/android/nfc/build.gradle assembleDebug \
  && cd /var/build \
  && rm -rf "/var/build/keyple-java"
 
