@@ -1,6 +1,7 @@
 # eclipsekeyple/java-builder:1
 FROM openjdk:8-jdk
 LABEL maintainer Brice Ruppen <brice.ruppen@armotic.fr>
+LABEL maintainer Olivier Delcroix <odelcroi@gmail.com>
 LABEL version 1
 
 # PGP installation
