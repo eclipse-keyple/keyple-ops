@@ -27,16 +27,23 @@ RUN mkdir -p "/opt/gradle" \
  && gradle --version
 
 # Android installation
-ENV ANDROID_HOME="/opt/android-sdk"
+ARG ANDROID_SDK_ROOT="/opt/android-sdk"
+ENV ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}"
+ENV ANDROID_HOME="${ANDROID_SDK_ROOT}"
 RUN umask g+w \
  && curl -fLsSo sdk-tools.zip "https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip" \
  && echo -n "Files extracted: " \
- && unzip -d "${ANDROID_HOME}" sdk-tools.zip | grep -c 'inflating:' \
- && mkdir -p "~/.android" \
- && touch "~/.android/repositories.cfg" \
- && update-alternatives --install "/usr/bin/sdkmanager" sdkmanager "${ANDROID_HOME}/tools/bin/sdkmanager" 1 \
- && yes | sdkmanager --sdk_root=${ANDROID_HOME} --licenses \
- && rm -rf "tools" "sdk-tools.zip" \
+ && unzip -d "${ANDROID_SDK_ROOT}" sdk-tools.zip | grep -c 'inflating:' \
+ && mkdir -p "${HOME}/.android" \
+ && touch "${HOME}/.android/repositories.cfg" \
+ && update-alternatives --install "/usr/bin/sdkmanager" sdkmanager "${ANDROID_SDK_ROOT}/tools/bin/sdkmanager" 1 \
+ && yes | sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses \
+ && rm -rf "sdk-tools.zip"
+
+RUN umask g+w \
+ && echo "Installing Android SDK components." \
+ && sdkmanager --sdk_root=${ANDROID_SDK} 'build-tools;26.0.3' 'platforms;android-26' \
+ && yes | sdkmanager --sdk_root=${ANDROID_SDK} --licenses \
  && echo -n "Successfully installed " \
  && sdkmanager --list | sed -n '1,/Available/p' | head -n -2
 
@@ -79,6 +86,7 @@ RUN umask g+w \
  && ./gradlew :java:component:keyple-plugin:keyple-plugin-remotese:assemble --info \
  && ./gradlew -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-nfc:uploadArchives \
  && ./gradlew -b ./java/example/calypso/android/nfc/build.gradle assembleDebug \
+ && rm -rf "${GRADLE_USER_HOME}/daemon" \
  && cd /var/build \
  && rm -rf "/var/build/keyple-java"
 
