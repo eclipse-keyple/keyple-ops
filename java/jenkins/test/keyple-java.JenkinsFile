@@ -1,17 +1,24 @@
 pipeline {
     agent {
         kubernetes {
-            label 'onPR'
+            label 'keyple-java_TEST'
             yaml '''
 apiVersion: v1
 kind: Pod
 spec:
   containers:
-  - name: android-sdk
+  - name: java-builder
     image: eclipsekeyple/java-builder:1
     command: ["/usr/local/bin/uid_entrypoint"]
     args: ["cat"]
     tty: true
+    resources:
+      requests:
+        cpu: 250m
+        memory: 1Gi
+      limits:
+        cpu: 1
+        memory: 2Gi
     volumeMounts:
     - name: volume-known-hosts
       mountPath: /home/jenkins/.ssh
@@ -37,26 +44,27 @@ spec:
     }
 
     environment {
-        JVM_OPTS= '-Xmx3200m'
-        ANDROID_HOME=  '/opt/android-sdk-linux'
+        GRADLE_USER_HOME = '/home/jenkins/.gradle/'
     }
 
     stages {
 
         stage('Prepare'){
             steps{
-                container('android-sdk') {
+                container('java-builder') {
                     echo "branch to be merge : ${ghprbSourceBranch}"
-                    //clone branch
                     git branch: '${ghprbSourceBranch}', url: 'https://github.com/eclipse/keyple-java.git'
                     sh 'gradle wrapper --gradle-version 4.5.1'
+                    sh 'echo "org.gradle.daemon=true" > /home/jenkins/.gradle/gradle.properties'
+                    sh 'echo "org.gradle.parallel=false" >> /home/jenkins/.gradle/gradle.properties'
+                    sh 'echo "org.gradle.jvmargs=-Xmx1800m -XX:MaxPermSize=512m -Dfile.encoding=UTF-8 -XX:+HeapDumpOnOutOfMemoryError" >> /home/jenkins/.gradle/gradle.properties'
                 }
             }
         }
 
         stage('Execute tests') {
             steps{
-                container('android-sdk') {
+                container('java-builder') {
                     sh './gradlew :java:component:keyple-core:uploadArchives --info'
                     sh './gradlew :java:component:keyple-calypso:uploadArchives --info'
                     sh './gradlew :java:component:keyple-plugin:keyple-plugin-pcsc:uploadArchives --info'
@@ -71,11 +79,8 @@ spec:
                     //examples
                     sh './gradlew -b java/example/calypso/remotese/build.gradle check'
 
-
-
                 }
             }
         }
-
     }
 }
