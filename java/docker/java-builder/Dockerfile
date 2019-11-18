@@ -30,8 +30,9 @@ RUN mkdir -p "/opt/gradle" \
 ARG ANDROID_SDK_ROOT="/opt/android-sdk"
 ENV ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}"
 ENV ANDROID_HOME="${ANDROID_SDK_ROOT}"
+ENV ANDROID_SDK="${ANDROID_SDK_ROOT}"
 RUN umask g+w \
- && curl -fLsSo sdk-tools.zip "https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip" \
+ && curl -fLsSo sdk-tools.zip "https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip" \
  && echo -n "Files extracted: " \
  && unzip -d "${ANDROID_SDK_ROOT}" sdk-tools.zip | grep -c 'inflating:' \
  && mkdir -p "${HOME}/.android" \
@@ -41,10 +42,18 @@ RUN umask g+w \
  && rm -rf "sdk-tools.zip"
 
 RUN umask g+w \
- && echo "Installing Android SDK components." \
- && sdkmanager --sdk_root=${ANDROID_SDK} 'build-tools;26.0.3' 'platforms;android-26' \
- && yes | sdkmanager --sdk_root=${ANDROID_SDK} --licenses \
- && echo -n "Successfully installed " \
+ && sdkmanager --sdk_root=${ANDROID_SDK_ROOT} tools \
+ && yes | sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses
+
+RUN umask g+w \
+ && sdkmanager --sdk_root=${ANDROID_SDK_ROOT} 'build-tools;26.0.3' \
+ && yes | sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses
+
+RUN umask g+w \
+ && sdkmanager --sdk_root=${ANDROID_SDK_ROOT} 'platforms;android-26' \
+ && yes | sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses
+
+RUN echo -n "Successfully installed " \
  && sdkmanager --list | sed -n '1,/Available/p' | head -n -2
 
 # Workspace creation
@@ -81,11 +90,13 @@ RUN umask g+w \
  && git clone "https://github.com/eclipse/keyple-java.git" \
  && cd "keyple-java" \
  && gradle wrapper --gradle-version 4.5.1 \
+ && set -x \
  && ./gradlew :java:component:keyple-core:uploadArchives --info \
  && ./gradlew :java:component:keyple-calypso:uploadArchives --info \
  && ./gradlew :java:component:keyple-plugin:keyple-plugin-remotese:assemble --info \
  && ./gradlew -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-nfc:uploadArchives \
  && ./gradlew -b ./java/example/calypso/android/nfc/build.gradle assembleDebug \
+ && set +x \
  && rm -rf "${GRADLE_USER_HOME}/daemon" \
  && cd /var/build \
  && rm -rf "/var/build/keyple-java"
