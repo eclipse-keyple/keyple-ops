@@ -1,13 +1,11 @@
 # eclipsekeyple/java-builder:1
 FROM openjdk:8-jdk
-LABEL maintainer Brice Ruppen <brice.ruppen@armotic.fr>
-LABEL maintainer Olivier Delcroix <odelcroi@gmail.com>
-LABEL version 1
+LABEL maintainer Brice Ruppen <brice.ruppen@armotic.fr>, Olivier Delcroix <odelcroi@gmail.com>
 
 # PGP installation
 RUN apt-get update \
     && apt-get remove -y  gnupg \
-    && apt-get install -y gnupg1 \
+    && apt-get install -y gnupg1 tree \
     && apt-get clean \
     && echo -n "Successfully installed " \
     && gpg1 --version
@@ -15,6 +13,7 @@ RUN apt-get update \
 # Gradle installation
 ARG GRADLE_VERSION="4.5.1"
 ENV GRADLE_HOME="/opt/gradle/gradle-${GRADLE_VERSION}"
+ENV JAVA_OPTS="-Xmx1800m -XX:MaxPermSize=512m -Dfile.encoding=UTF-8 -XX:+HeapDumpOnOutOfMemoryError"
 RUN mkdir -p "/opt/gradle" \
  && cd "/opt/gradle" \
  && curl -fLsSo gradle.zip "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" \
@@ -74,13 +73,12 @@ USER jenkins:root
 ARG USER="jenkins"
 ENV USER_NAME="${USER}"
 ENV HOME="/home/${USER}"
-ENV GRADLE_USER_HOME="/home/${USER}/agent/.gradle"
+ENV GRADLE_USER_HOME="/home/${USER}/.gradle"
 
 RUN umask g+w \
  && chmod g+w ~ \
  && cd "/home/${USER}" \
- && mkdir -p ".gradle" \
- && mkdir -p ".android" \
+ && mkdir -p ".gradle" ".android" \
  && touch ".android/repositories.cfg" 
 
 #
@@ -96,9 +94,10 @@ RUN umask g+w \
  && ./gradlew :java:component:keyple-plugin:keyple-plugin-remotese:assemble --info \
  && ./gradlew -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-nfc:uploadArchives \
  && ./gradlew -b ./java/example/calypso/android/nfc/build.gradle assembleDebug \
- && set +x \
- && rm -rf "${GRADLE_USER_HOME}/daemon" \
+ && ./gradlew --stop \
  && cd /var/build \
- && rm -rf "/var/build/keyple-java"
+ && rm -rf "/var/build/keyple-java" "${GRADLE_USER_HOME}/daemon"
 
 ENTRYPOINT [ "/usr/local/bin/uid_entrypoint" ]
+
+LABEL version 1
