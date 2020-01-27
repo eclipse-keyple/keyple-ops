@@ -140,10 +140,12 @@ spec:
                         sh 'gradle :java:component:keyple-core:uploadArchives --info'
                         sh 'gradle :java:component:keyple-calypso:uploadArchives --info'
 
+                        //build and install android plugins locally
+                        sh 'gradle -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-nfc:uploadArchives --info'
+                        sh 'gradle -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-omapi:uploadArchives --info'
 
                         /* Read key Id in gradle.properties */
                         sh 'head -1  ${GRADLE_USER_HOME}/gradle.properties'
-
 
                         /* Sign and Upload Jars */
                         sh 'gradle :java:component:keyple-core:uploadArchives ${uploadParams}'
