@@ -35,4 +35,5 @@ Artifacts : keyple-java-core, keyple-java-calypso, keyple-java-plugin-stub, keyp
 * * increment artifacts version
 * * make keyple-java-example point to "+"
 * * set release flag to false
+* * add a new section for **new_version** in release note
 * merge branch:**init_new_version** into branch:**develop** 
