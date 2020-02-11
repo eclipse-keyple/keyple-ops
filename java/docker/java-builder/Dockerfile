@@ -11,7 +11,7 @@ RUN apt-get update \
     && gpg1 --version
 
 # Gradle installation
-ARG GRADLE_VERSION="4.5.1"
+ARG GRADLE_VERSION="5.6.4"
 ENV GRADLE_HOME="/opt/gradle/gradle-${GRADLE_VERSION}"
 ENV JAVA_OPTS="-Xmx1800m -XX:MaxPermSize=512m -Dfile.encoding=UTF-8 -XX:+HeapDumpOnOutOfMemoryError"
 RUN mkdir -p "/opt/gradle" \
@@ -87,7 +87,10 @@ RUN umask g+w \
 RUN umask g+w \
  && git clone "https://github.com/eclipse/keyple-java.git" \
  && cd "keyple-java" \
+ && gradle wrapper --gradle-version 5.6.4 \
+ && ./gradlew -version \
  && gradle wrapper --gradle-version 4.5.1 \
+ && ./gradlew -version \
  && set -x \
  && ./gradlew :java:component:keyple-core:uploadArchives --info \
  && ./gradlew :java:component:keyple-calypso:uploadArchives --info \

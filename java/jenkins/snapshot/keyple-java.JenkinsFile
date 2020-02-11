@@ -72,12 +72,12 @@ pipeline {
 
                         /* Compile project */
                         //build and install keyple-core locally
-                        sh 'gradle :java:component:keyple-core:uploadArchives --info'
-                        sh 'gradle :java:component:keyple-calypso:uploadArchives --info'
+                        sh './gradlew :java:component:keyple-core:uploadArchives --info'
+                        sh './gradlew :java:component:keyple-calypso:uploadArchives --info'
 
                         //build and install android plugins locally
-                        sh 'gradle -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-nfc:uploadArchives --info'
-                        sh 'gradle -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-omapi:uploadArchives --info'
+                        sh './gradlew -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-nfc:uploadArchives --info'
+                        sh './gradlew -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-omapi:uploadArchives --info'
 
 
                         /* Read key Id in gradle.properties */
@@ -85,15 +85,15 @@ pipeline {
 
 
                         // /* Sign and Upload Jars */
-                        sh 'gradle :java:component:keyple-core:uploadArchives ${uploadParams}'
-                        sh 'gradle :java:component:keyple-calypso:uploadArchives ${uploadParams}'
-                        sh 'gradle :java:component:keyple-plugin:keyple-plugin-pcsc:uploadArchives ${uploadParams}'
-                        sh 'gradle :java:component:keyple-plugin:keyple-plugin-remotese:uploadArchives ${uploadParams}'
-                        sh 'gradle :java:component:keyple-plugin:keyple-plugin-stub:uploadArchives ${uploadParams}'
+                        sh './gradlew :java:component:keyple-core:uploadArchives ${uploadParams}'
+                        sh './gradlew :java:component:keyple-calypso:uploadArchives ${uploadParams}'
+                        sh './gradlew :java:component:keyple-plugin:keyple-plugin-pcsc:uploadArchives ${uploadParams}'
+                        sh './gradlew :java:component:keyple-plugin:keyple-plugin-remotese:uploadArchives ${uploadParams}'
+                        sh './gradlew :java:component:keyple-plugin:keyple-plugin-stub:uploadArchives ${uploadParams}'
 
                         //  /* Sign and Upload Aars */
-                        sh 'gradle -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-nfc:uploadArchives ${uploadParams}'
-                        sh 'gradle -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-omapi:uploadArchives ${uploadParams}'
+                        sh './gradlew -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-nfc:uploadArchives ${uploadParams}'
+                        sh './gradlew -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-omapi:uploadArchives ${uploadParams}'
                     }
                 }
             }
@@ -109,8 +109,8 @@ pipeline {
                     sh 'mkdir -p "./java/example/calypso/android/omapi/?/.android/"'
                     sh 'keytool -genkey -v -keystore ./java/example/calypso/android/nfc/?/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US"'
                     sh 'keytool -genkey -v -keystore ./java/example/calypso/android/omapi/?/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US"'
-                    sh 'gradle -b ./java/example/calypso/android/nfc/build.gradle assembleDebug'
-                    sh 'gradle -b ./java/example/calypso/android/omapi/build.gradle assembleDebug'
+                    sh './gradlew -b ./java/example/calypso/android/nfc/build.gradle assembleDebug'
+                    sh './gradlew -b ./java/example/calypso/android/omapi/build.gradle assembleDebug'
                 }
             }
         }
