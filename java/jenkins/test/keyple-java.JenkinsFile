@@ -9,30 +9,22 @@ pipeline {
         }
     }
     stages {
-        stage('Prepare'){
-            steps{
-                container('java-builder') {
-                    git url: 'https://github.com/eclipse/keyple-java.git',
-                        branch: '${ghprbSourceBranch}'
-                }
-            }
-        }
         stage('Execute tests') {
             steps{
                 container('java-builder') {
-                    sh 'gradle :java:component:keyple-core:uploadArchives --info'
-                    sh 'gradle :java:component:keyple-calypso:uploadArchives --info'
-                    sh 'gradle :java:component:keyple-plugin:keyple-plugin-pcsc:uploadArchives --info'
-                    sh 'gradle :java:component:keyple-plugin:keyple-plugin-remotese:uploadArchives --info'
-                    sh 'gradle :java:component:keyple-plugin:keyple-plugin-stub:uploadArchives --info'
-                    sh 'gradle check --info'
+                    sh './gradlew :java:component:keyple-core:uploadArchives --info'
+                    sh './gradlew :java:component:keyple-calypso:uploadArchives --info'
+                    sh './gradlew :java:component:keyple-plugin:keyple-plugin-pcsc:uploadArchives --info'
+                    sh './gradlew :java:component:keyple-plugin:keyple-plugin-remotese:uploadArchives --info'
+                    sh './gradlew :java:component:keyple-plugin:keyple-plugin-stub:uploadArchives --info'
+                    sh './gradlew check --info'
 
                     //android
-                    sh 'gradle -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-nfc:check'
-                    sh 'gradle -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-omapi:check'
+                    sh './gradlew -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-nfc:check'
+                    sh './gradlew -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-omapi:check'
 
                     //examples
-                    sh 'gradle -b java/example/calypso/remotese/build.gradle check'
+                    sh './gradlew -b java/example/calypso/remotese/build.gradle check'
 
                 }
             }
