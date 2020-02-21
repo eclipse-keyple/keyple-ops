@@ -60,6 +60,9 @@ RUN umask g+w \
  && mkdir -p "/var/build"
 WORKDIR "/var/build"
 
+# Add github publickey for ssh connection
+RUN echo 'github.com,192.30.252.*,192.30.253.*,192.30.254.*,192.30.255.*,192.30.252.*,140.82.112.*,140.82.113.*,140.82.114.*,140.82.115.*,140.82.116.*,140.82.117.*,140.82.118.*,140.82.119.*,140.82.120.*,140.82.121.*,140.82.122.*,140.82.123.*,140.82.124.*,140.82.125.*,140.82.126.*,140.82.127.* AAAAB3NzaC1yc2EAAAABIwAAAQEAq2A7hRGmdnm9tUDbO9IDSwBK6TbQa+PXYPCPy6rbTrTtw7PHkccKrpp0yVhp5HdEIcKr6pLlVDBfOLX9QUsyCOV0wzfjIJNlGEYsdlLJizHhbn2mUjvSAHQqZETYP81eFzLQNnPHt4EVVUh7VfDESU84KezmD5QlWpXLmvU31/yMf+Se8xhHTvKSCZIFImWwoG6mbUoWf9nzpIoaSjB+weqqUUmpaaasXVal72J+UX2B+2RPW3RcT0eOzQgqlJL3RKrTJvdsjE3JEAvGq3lGHSZXy28G3skua2SmVi/w4yCE6gbODqnTWlg7+wC604ydGXA8VJiS5ap43JXiUFFAaQ==' >> /etc/ssh/ssh_known_hosts
+
 ### user name recognition at runtime w/ an arbitrary uid - for OpenShift deployments
 COPY uid_entrypoint /usr/local/bin/uid_entrypoint
 RUN chmod u+x /usr/local/bin/uid_entrypoint && \
@@ -82,20 +85,33 @@ RUN umask g+w \
  && touch ".android/repositories.cfg" 
 
 #
+# Pre-Download Gradle wrappers
+#
+RUN umask g+w \
+ && mkdir gradle-wrapper \
+ && cd gradle-wrapper \
+ && gradle wrapper --gradle-version 4.5.1 \
+ && ./gradlew -version \
+ && gradle wrapper --gradle-version 5.6.4 \
+ && ./gradlew -version \
+ && gradle --stop \
+ && cd /var/build \
+ && rm -rf "/var/build/gradle-wrapper" "${GRADLE_USER_HOME}/daemon"
+
+#
 # Pre-Download dependencies
 #
 RUN umask g+w \
  && git clone "https://github.com/eclipse/keyple-java.git" \
  && cd "keyple-java" \
- && gradle wrapper --gradle-version 5.6.4 \
- && ./gradlew -version \
- && gradle wrapper --gradle-version 4.5.1 \
- && ./gradlew -version \
+ && git checkout develop \
  && set -x \
  && ./gradlew :java:component:keyple-core:uploadArchives --info \
  && ./gradlew :java:component:keyple-calypso:uploadArchives --info \
  && ./gradlew :java:component:keyple-plugin:keyple-plugin-remotese:assemble --info \
- && ./gradlew -b ./android/build.gradle :keyple-plugin:keyple-plugin-android-nfc:uploadArchives \
+ && cd android/ \
+ && ./gradlew :keyple-plugin:keyple-plugin-android-nfc:uploadArchives \
+ && cd .. \
  && ./gradlew -b ./java/example/calypso/android/nfc/build.gradle assembleDebug \
  && ./gradlew --stop \
  && cd /var/build \
