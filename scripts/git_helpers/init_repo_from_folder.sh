@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This script initializes an empty git repository (the "target") with a folder from an
 # already existing repo (the "source"), keeping track of the complete git history
