@@ -9,6 +9,14 @@ pipeline {
         }
     }
     stages {
+        stage('Prepare'){
+            steps{
+                container('java-builder') {
+                    git url: 'https://github.com/eclipse/keyple-java.git',
+                        branch: '${ghprbSourceBranch}'
+                }
+            }
+        }
         stage('Execute tests') {
             steps{
                 container('java-builder') {
