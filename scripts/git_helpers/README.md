@@ -27,7 +27,7 @@ In order to do that:
 
 ## Populate an empty repository from an existing repo, filtering out folders and cleaning the git history: [init_repo_excluding_folders.sh](init_repo_excluding_folders.sh)
 
-This script initializes an empty git repository (the "target") from an already existing repo (the "source") excluding a list a folders from it. It removes the commit history associated with the excluded folders in order to retain a clean git history in the target repo.
+This script initializes an empty git repository (the "target") from an already existing repo (the "source") excluding a list of folders from it. It removes the commit history associated with the excluded folders in order to retain a clean git history in the target repo.
 
 You should ensure to have a clean local copy of the source repo before executing the script. Also be sure that the target repository is actually created, remotely accessible and empty.
 
@@ -43,13 +43,13 @@ Let's say you have used the previous script to move the `android` and `java` fol
 
 In order to do that:
 
-1. Create a new "base" repository: *gitRepoUrl/keyple-base*
+1. Create a new "base" repository: *gitRepoUrl/keyple-base.git*
 2. Clone the keyple-java repository, somewhere to your workspace: *path/to/keyple-java*
 3. Run `./init_repo_excluding_folders.sh path/to/keyple-java gitRepoUrl/keyple-base.git android java`
 
 ## Use Case
 
-Starting from the repository [keyple-java](https://github.com/eclipse/keyple-java), we want to reorganize the project and split it in several repositories. The goal would be to have a repo for each component. But we also want to have unique entry point for he project, via a "base" repository, gathering all the components as [git submodules](https://git-scm.com/docs/git-submodule). Of course, we want to keep a clean git history for everything.
+Starting from the repository [keyple-java](https://github.com/eclipse/keyple-java), we want to reorganize the project and split it in several repositories. The goal would be to have a repo for each component. But we also want to have unique entry point for the project, via a "base" repository, gathering all the components as [git submodules](https://git-scm.com/docs/git-submodule). Of course, we want to keep a clean git history for everything.
 
 In order not to break already existing setups based on the current keyple-java project (such as CI), the idea will be to have a resulting file tree similar to the current one.
 
