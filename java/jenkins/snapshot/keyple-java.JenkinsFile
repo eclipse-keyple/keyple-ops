@@ -17,7 +17,7 @@ pipeline {
                 container('java-builder') {
                     script {
                         /* Checkout project */
-                        def scmVars =  checkout([$class: 'GitSCM', branches: [[name: '*/develop']], userRemoteConfigs: [[url: 'https://github.com/eclipse/keyple-java.git']]])
+                        def scmVars =  checkout([$class: 'GitSCM', branches: [[name: '*/release-0.8.*']], userRemoteConfigs: [[url: 'https://github.com/eclipse/keyple-java.git']]])
 
                         echo "scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT ${scmVars.GIT_PREVIOUS_SUCCESSFUL_COMMIT}"
                         echo "scmVars.GIT_COMMIT ${scmVars.GIT_COMMIT}"
