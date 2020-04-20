@@ -13,10 +13,24 @@ To build locally, use:
 To simulate Eclipse's usage when using Jenkins containers, use this command:
 `docker run -it --rm -u $((1000100000 + RANDOM % 100000)):0 eclipsekeyple/java-builder:1 bash`
 
-
-
 Release process java
-------------
+-----------
+
+## Create a patch branch
+
+Artifacts : keyple-java-core, keyple-java-calypso, keyple-java-plugin-stub, keyple-java-plugin-pcsc, keyple-java-plugin-remotese, keyple-android-plugin-nfc, keyple-android-plugin-omapi
+
+* create branch:**release_X.Y.Z+1** from branch:**release_X.Y.Z** with :
+* * Change all artifacts version to X.Y.Z+1
+* * make keyple-java-example, android examples apk point to version "X.Y.Z+1"
+* * edit readme.md
+* * edit release note
+* * set release flag to false
+
+Add code fix then follow Release process
+
+
+## Release process
 
 Artifacts : keyple-java-core, keyple-java-calypso, keyple-java-plugin-stub, keyple-java-plugin-pcsc, keyple-java-plugin-remotese, keyple-android-plugin-nfc, keyple-android-plugin-omapi
 
