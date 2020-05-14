@@ -42,7 +42,9 @@ Artifacts : keyple-java-core, keyple-java-calypso, keyple-java-plugin-stub, keyp
 * tag source code with tag : **"vX.Y.Z"** and push to repo
 * merge branch:**release_X.Y.Z** into branch:**master**
 * generate artifacts with release version "X.Y.Z" with jenkins pipeline
-* upload artifacts to oss.sonatype.org staging repository with jenkins pipeline. Promote artifacts as release in sonatype to publish them into Maven Central
+* artifacts are uploaded to oss.sonatype.org staging repository with. Promote artifacts as release in sonatype to publish them into Maven Central
+* * locate staging repo at : https://oss.sonatype.org/#stagingRepositories with account : keyple_bot
+* * close and release artifacts following instructions : https://central.sonatype.org/pages/releasing-the-deployment.html
 * upload artifacts to download.eclipse.com/releases with jenkins pipeline.
 * upload artifacts to github release manually.
 * create branch:**init_new_version** from branch:**master**  with:
