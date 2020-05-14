@@ -45,8 +45,8 @@ Artifacts : keyple-java-core, keyple-java-calypso, keyple-java-plugin-stub, keyp
 * artifacts are uploaded to oss.sonatype.org staging repository with. Promote artifacts as release in sonatype to publish them into Maven Central
 * * locate staging repo at : https://oss.sonatype.org/#stagingRepositories with account : keyple_bot
 * * close and release artifacts following instructions : https://central.sonatype.org/pages/releasing-the-deployment.html
-* upload artifacts to download.eclipse.com/releases with jenkins pipeline.
-* upload artifacts to github release manually.
+* create a github release and upload artifacts manually.
+* modify link in download.eclipse.com/releases to point to release in github
 * create branch:**init_new_version** from branch:**master**  with:
 * * increment artifacts version
 * * make keyple-java-example point to "+"
