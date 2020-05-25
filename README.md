@@ -10,11 +10,26 @@ This is a Docker container used to build all Keyple java-based modules.
 To build locally, use:
 `docker build -t eclipsekeyple/java-builder:1 .`
 
+### Usage
 To simulate Eclipse's usage when using Jenkins containers, use this command:
 `docker run -it --rm -u $((1000100000 + RANDOM % 100000)):0 eclipsekeyple/java-builder:1 bash`
 
-Release process java
+
+cpp-builder
 -----------
+This is a Docker container used to build all Keyple cpp-based modules.
+
+To build locally, use:
+`docker build -t eclipsekeyple/cpp-builder:7.0 .`
+
+
+### Usage
+To simulate Eclipse's usage when using Jenkins containers, use this command:
+`docker run -it --rm -u $((1000100000 + RANDOM % 100000)):0 eclipsekeyple/cpp-builder:7.0 bash`
+
+
+Release process java
+--------------------
 
 ## Create a patch branch
 
