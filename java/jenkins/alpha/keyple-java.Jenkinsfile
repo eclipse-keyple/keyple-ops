@@ -1,5 +1,4 @@
 #!groovy
-@Library('java-builder') _
 def keypleVersion
 pipeline {
     agent {
@@ -56,6 +55,8 @@ pipeline {
                     sh './gradlew installAll --info'
                     sh './gradlew check --info'
 
+                    junit allowEmptyResults: true, testResults: 'java/component/**/build/test-results/test/*.xml'
+
                     script {
                         keypleVersion = sh(script: 'grep version java/component/keyple-core/gradle.properties | cut -d= -f2 | tr -d "[:space:]"', returnStdout: true)
                     }
@@ -69,6 +70,7 @@ pipeline {
                         sh './gradlew setNextAlphaVersion'
                         sh './gradlew :keyple-plugin:keyple-plugin-android-nfc:check'
                         sh './gradlew :keyple-plugin:keyple-plugin-android-omapi:check'
+                        junit allowEmptyResults: true, testResults: 'keyple-plugin/**/build/test-results/testDebugUnitTest/*.xml'
                     }
                 }
             }
@@ -112,6 +114,7 @@ pipeline {
                         sh './gradlew :java:component:keyple-plugin:keyple-plugin-pcsc:uploadArchives ${uploadParams}'
                         sh './gradlew :java:component:keyple-plugin:keyple-plugin-remotese:uploadArchives ${uploadParams}'
                         sh './gradlew :java:component:keyple-plugin:keyple-plugin-stub:uploadArchives ${uploadParams}'
+                        sh './gradlew --stop'
                     }
                 }
             }
@@ -122,11 +125,10 @@ pipeline {
                     configFileProvider(
                         [configFile(fileId: 'gradle.properties',
                             targetLocation: '/home/jenkins/agent/gradle.properties')]) {
-                        dir('java/example/calypso/android/nfc/') {
-                            sh '../../../../../gradlew assembleDebug -P keyple_version=${keypleVersion}'
-                        }
-                        dir('java/example/calypso/android/omapi') {
-                            sh './gradlew assembleDebug -P keyple_version=${keypleVersion}'
+                         dir('android') {
+                            sh './gradlew :keyple-plugin:keyple-plugin-android-nfc:uploadArchives ${uploadParams} -P keyple_version=${keypleVersion}'
+                            sh './gradlew :keyple-plugin:keyple-plugin-android-omapi:uploadArchives ${uploadParams} -P keyple_version=${keypleVersion}'
+                            sh './gradlew --stop'
                         }
                     }
                 }
@@ -135,16 +137,17 @@ pipeline {
         stage('Keyple Java: Generate apks') {
             steps{
                 container('java-builder') {
-                    sh 'mkdir -p "./java/example/calypso/android/nfc/?/.android/"'
-                    sh 'mkdir -p "./java/example/calypso/android/omapi/?/.android/"'
-                    sh 'keytool -genkey -v -keystore ./java/example/calypso/android/nfc/?/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US"'
-                    sh 'keytool -genkey -v -keystore ./java/example/calypso/android/omapi/?/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US"'
-                    sh './gradlew -b ./java/example/calypso/android/nfc/build.gradle assembleDebug -P keyple_version=${keypleVersion}'
-                    sh './gradlew -b ./java/example/calypso/android/omapi/build.gradle assembleDebug -P keyple_version=${keypleVersion}'
+                    sh 'keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 90'
+                    dir('java/example/calypso/android/nfc/') {
+                        sh './gradlew assembleDebug -P keyple_version=${keypleVersion}'
+                    }
+                    dir('java/example/calypso/android/omapi') {
+                        sh './gradlew assembleDebug -P keyple_version=${keypleVersion}'
+                    }
                 }
             }
         }
-        stage('Keyple Java: Prepare package for eclipse') {
+        stage('Keyple Java: Deploy to eclipse') {
             steps {
                 container('java-builder') {
                     sh 'mkdir ./repository'
@@ -160,12 +163,6 @@ pipeline {
                     sh 'cp ./android/keyple-plugin/android-nfc/build/outputs/aar/keyple-android-plugin*.aar ./repository/android'
                     sh 'cp ./android/keyple-plugin/android-omapi/build/outputs/aar/keyple-android-plugin*.aar ./repository/android'
                     sh 'ls -R ./repository'
-                }
-            }
-        }
-        stage('Keyple Java: Deploy to eclipse') {
-            steps {
-                container('java-builder') {
                     sshagent(['projects-storage.eclipse.org-bot-ssh']) {
                         //sh "head -n 50 /etc/passwd"
                         sh "ssh genie.keyple@projects-storage.eclipse.org rm -rf /home/data/httpd/download.eclipse.org/keyple/releases"

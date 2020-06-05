@@ -1,5 +1,4 @@
 #!groovy
-@Library('java-builder') _
 pipeline {
     agent {
         kubernetes {
