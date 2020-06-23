@@ -106,13 +106,13 @@ RUN umask g+w \
  && cd "keyple-java" \
  && git checkout develop \
  && set -x \
- && ./gradlew :java:component:keyple-core:uploadArchives --info \
- && ./gradlew :java:component:keyple-calypso:uploadArchives --info \
- && ./gradlew :java:component:keyple-plugin:keyple-plugin-remotese:assemble --info \
+ && ./gradlew installAll --info \
+ && ./gradlew --stop \
+ && export keypleVersion=$(grep version java/component/keyple-core/gradle.properties | cut -d= -f2 | tr -d "[:space:]") \
+ && echo "Working with keyple-java $keypleVersion" \
  && cd android/ \
  && ./gradlew :keyple-plugin:keyple-plugin-android-nfc:uploadArchives \
- && cd .. \
- && ./gradlew -b ./java/example/calypso/android/nfc/build.gradle assembleDebug \
+ && ./gradlew :keyple-plugin:keyple-plugin-android-omapi:uploadArchives \
  && ./gradlew --stop \
  && cd /var/build \
  && rm -rf "/var/build/keyple-java" "${GRADLE_USER_HOME}/daemon"
