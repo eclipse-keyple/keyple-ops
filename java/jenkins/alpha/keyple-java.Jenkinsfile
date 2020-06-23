@@ -55,10 +55,9 @@ pipeline {
                     sh './gradlew installAll --info'
                     sh './gradlew check --info'
 
-                    junit allowEmptyResults: true, testResults: 'java/component/**/build/test-results/test/*.xml'
-
                     script {
-                        keypleVersion = sh(script: 'grep version java/component/keyple-core/gradle.properties | cut -d= -f2 | tr -d "[:space:]"', returnStdout: true)
+                        keypleVersion = sh(script: 'grep version java/component/keyple-core/gradle.properties | cut -d= -f2 | tr -d "[:space:]"', returnStdout: true).trim()
+                        echo "Building version ${keypleVersion}"
                     }
                 }
             }
@@ -68,9 +67,8 @@ pipeline {
                 container('java-builder') {
                     dir('android') {
                         sh './gradlew setNextAlphaVersion'
-                        sh './gradlew :keyple-plugin:keyple-plugin-android-nfc:check'
-                        sh './gradlew :keyple-plugin:keyple-plugin-android-omapi:check'
-                        junit allowEmptyResults: true, testResults: 'keyple-plugin/**/build/test-results/testDebugUnitTest/*.xml'
+                        sh './gradlew :keyple-plugin:keyple-plugin-android-nfc:installPlugin :keyple-plugin:keyple-plugin-android-nfc:check'
+                        sh './gradlew :keyple-plugin:keyple-plugin-android-omapi:installPlugin :keyple-plugin:keyple-plugin-android-omapi:check'
                     }
                 }
             }
@@ -126,8 +124,8 @@ pipeline {
                         [configFile(fileId: 'gradle.properties',
                             targetLocation: '/home/jenkins/agent/gradle.properties')]) {
                          dir('android') {
-                            sh './gradlew :keyple-plugin:keyple-plugin-android-nfc:uploadArchives ${uploadParams} -P keyple_version=${keypleVersion}'
-                            sh './gradlew :keyple-plugin:keyple-plugin-android-omapi:uploadArchives ${uploadParams} -P keyple_version=${keypleVersion}'
+                            sh "./gradlew :keyple-plugin:keyple-plugin-android-nfc:uploadArchives ${uploadParams} -P keyple_version=${keypleVersion}"
+                            sh "./gradlew :keyple-plugin:keyple-plugin-android-omapi:uploadArchives ${uploadParams} -P keyple_version=${keypleVersion}"
                             sh './gradlew --stop'
                         }
                     }
@@ -139,10 +137,10 @@ pipeline {
                 container('java-builder') {
                     sh 'keytool -genkey -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 90'
                     dir('java/example/calypso/android/nfc/') {
-                        sh './gradlew assembleDebug -P keyple_version=${keypleVersion}'
+                        sh "./gradlew assembleDebug -P keyple_version=${keypleVersion}"
                     }
                     dir('java/example/calypso/android/omapi') {
-                        sh './gradlew assembleDebug -P keyple_version=${keypleVersion}'
+                        sh "./gradlew assembleDebug -P keyple_version=${keypleVersion}"
                     }
                 }
             }
@@ -177,6 +175,8 @@ pipeline {
         always {
             container('java-builder') {
                 archiveArtifacts artifacts: 'java/component/**/build/reports/tests/**,android/keyple-plugin/**/build/reports/tests/**', allowEmptyArchive: true
+                junit allowEmptyResults: true, testResults: 'java/component/**/build/test-results/test/*.xml'
+                junit allowEmptyResults: true, testResults: 'android/keyple-plugin/**/build/test-results/testDebugUnitTest/*.xml'
             }
         }
     }
