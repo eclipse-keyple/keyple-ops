@@ -16,7 +16,7 @@ spec:
         memory: 1Gi
       limits:
         cpu: 1
-        memory: 2Gi
+        memory: 4Gi
     volumeMounts:
     - name: volume-known-hosts
       mountPath: /home/jenkins/.ssh
