@@ -96,7 +96,7 @@ pipeline {
                                 git commit -m 'Release keyple-java ${keypleVersion} --signoff'
                                 git tag '${keypleVersion}'
                                 git push 'https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/eclipse/keyple-java.git' refs/tags/${keypleVersion}
-                                git push 'https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/eclipse/keyple-java.git' master
+                                git push 'https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/eclipse/keyple-java.git' origin master
                             else
                                 echo 'No change have been detected since last build, nothing to publish'
                                 exit 2
