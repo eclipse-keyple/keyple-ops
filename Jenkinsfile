@@ -7,9 +7,19 @@ pipeline {
         }
     }
     stages {
+        stage('Prepare settings') {
+            steps{
+                container('java-builder') {
+                    script {
+                        keypleGradleVersion = sh(script: 'grep "^version" java/keyple-gradle/gradle.properties | cut -d= -f2 | tr -d "[:space:]"', returnStdout: true).trim()
+                        deployKeypleGradle = env.GIT_URL == 'https://github.com/eclipse/keyple-ops.git' && env.GIT_BRANCH == "master" && env.CHANGE_ID == null
+                    }
+                }
+            }
+        }
         stage('Import keyring'){
             when {
-                expression { env.GIT_URL == 'https://github.com/eclipse/keyple-ops.git' && env.GIT_BRANCH == "master" }
+                expression { deployKeypleGradle }
             }
             steps{
                 container('java-builder') {
@@ -57,7 +67,7 @@ pipeline {
         }
         stage('Keyple Gradle Plugin: Upload to sonatype') {
             when {
-                expression { env.GIT_URL == 'https://github.com/eclipse/keyple-ops.git' && env.GIT_BRANCH == "master" }
+                expression { deployKeypleGradle }
             }
             steps{
                 container('java-builder') {
@@ -73,14 +83,14 @@ pipeline {
         }
         stage('Keyple Gradle Plugin: Code Quality') {
             when {
-                expression { env.GIT_URL == 'https://github.com/eclipse/keyple-ops.git' && env.GIT_BRANCH == "master" }
+                expression { deployKeypleGradle }
             }
             steps {
                 catchError(buildResult: 'SUCCESS', message: 'Unable to log code quality to Sonar.', stageResult: 'FAILURE') {
                     container('java-builder') {
                         withCredentials([string(credentialsId: 'sonarcloud-token', variable: 'SONAR_LOGIN')]) {
                             dir('java/keyple-gradle') {
-                                sh './gradlew codeQuality'
+                                sh './gradlew sonarqube'
                             }
                         }
                     }
