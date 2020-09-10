@@ -6,6 +6,7 @@ import java.io.IOException
 plugins {
     maven
     kotlin("jvm") version "1.3.61"
+    signing
 }
 
 buildscript {
@@ -14,7 +15,7 @@ buildscript {
     }
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61")
-        classpath("com.sun.istack:istack-commons-runtime:3.+")
+        classpath("com.sun.istack:istack-commons-runtime:3.0.11")
     }
 }
 
@@ -22,7 +23,7 @@ dependencies {
     implementation(gradleApi())
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.61")
     testImplementation("org.junit.jupiter:junit-jupiter:5.6.0")
-    testImplementation("com.sun.istack:istack-commons-runtime:3.+")
+    testImplementation("com.sun.istack:istack-commons-runtime:3.0.11")
     testImplementation("org.assertj:assertj-core:3.15.0")
 }
 
@@ -73,6 +74,13 @@ fun urlExists(repositoryUrl: String): Boolean {
     }
 }
 
+if (project.hasProperty("signing.keyId")) {
+    println("Signing artifacts.")
+    signing {
+        sign(configurations.archives.get())
+    }
+}
+
 tasks {
     test {
         useJUnitPlatform()
@@ -94,6 +102,9 @@ tasks {
         repositories {
             withConvention(MavenRepositoryHandlerConvention::class) {
                 mavenDeployer {
+                    if (project.hasProperty("signing.keyId")) {
+                        beforeDeployment { signing.signPom(this) }
+                    }
                     withGroovyBuilder {
                         "repository"("url" to releaseRepo) {
                             "authentication"("userName" to ossrhUsername, "password" to ossrhPassword)
