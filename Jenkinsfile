@@ -43,8 +43,14 @@ pipeline {
                             fileId: 'gradle.properties',
                             targetLocation: '/home/jenkins/agent/gradle.properties')]) {
                         dir('java/keyple-gradle') {
-                            sh './gradlew clean build test'
+                            sh './gradlew clean build'
                         }
+                        catchError(buildResult: 'UNSTABLE', message: 'There were failing tests.', stageResult: 'UNSTABLE') {
+                            dir('java/keyple-gradle') {
+                                sh './gradlew test'
+                            }
+                        }
+                        junit allowEmptyResults: true, testResults: 'java/keyple-gradle/build/test-results/test/*.xml'
                     }
                 }
             }
@@ -55,12 +61,27 @@ pipeline {
             }
             steps{
                 container('java-builder') {
-                    configFileProvider(
-                        [configFile(
+                    configFileProvider([configFile(
                             fileId: 'gradle.properties',
                             targetLocation: '/home/jenkins/agent/gradle.properties')]) {
                         dir('java/keyple-gradle') {
                             sh './gradlew uploadArchives'
+                        }
+                    }
+                }
+            }
+        }
+        stage('Keyple Gradle Plugin: Code Quality') {
+            when {
+                expression { env.GIT_URL == 'https://github.com/eclipse/keyple-ops.git' && env.GIT_BRANCH == "master" }
+            }
+            steps {
+                catchError(buildResult: 'SUCCESS', message: 'Unable to log code quality to Sonar.', stageResult: 'FAILURE') {
+                    container('java-builder') {
+                        withCredentials([string(credentialsId: 'sonarcloud-token', variable: 'SONAR_LOGIN')]) {
+                            dir('java/keyple-gradle') {
+                                sh './gradlew codeQuality'
+                            }
                         }
                     }
                 }

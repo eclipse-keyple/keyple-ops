@@ -22,10 +22,6 @@ class KeypleMarshaller {
         return ByteArrayInputStream(outputStream.toByteArray())
     }
 
-    fun <T> unmarshal(response: InputStream): T {
-        return unmarshal<T>(response, null)
-    }
-
     fun <T> unmarshal(response: InputStream, clazz: Class<T>?): T {
         val sax = SAXParserFactory.newInstance()
         sax.isNamespaceAware = false
