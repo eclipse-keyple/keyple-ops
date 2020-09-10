@@ -7,6 +7,8 @@ plugins {
     maven
     kotlin("jvm") version "1.3.61"
     signing
+    id("org.sonarqube") version "3.0"
+    jacoco
 }
 
 buildscript {
@@ -25,6 +27,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.6.0")
     testImplementation("com.sun.istack:istack-commons-runtime:3.0.11")
     testImplementation("org.assertj:assertj-core:3.15.0")
+    testImplementation("org.mockito:mockito-core:3.5.10")
 }
 
 repositories {
@@ -82,10 +85,45 @@ if (project.hasProperty("signing.keyId")) {
 }
 
 tasks {
+    val sourcesJar by creating(Jar::class) {
+        archiveClassifier.set("sources")
+        from(sourceSets.main.get().allSource)
+    }
+    javadoc {
+        options.encoding = "UTF-8"
+    }
+    val javadocJar by creating(Jar::class) {
+        dependsOn.add(javadoc)
+        archiveClassifier.set("javadoc")
+        from(javadoc)
+    }
+    artifacts {
+        archives(sourcesJar)
+        archives(javadocJar)
+        archives(jar)
+    }
+    jacocoTestReport {
+        dependsOn("test")
+        reports {
+            xml.isEnabled = true
+            csv.isEnabled = false
+            html.isEnabled = true
+        }
+    }
     test {
         useJUnitPlatform()
         testLogging {
             events("passed", "skipped", "failed")
+        }
+        finalizedBy("jacocoTestReport")
+    }
+    sonarqube {
+        properties {
+            property("sonar.projectKey", "eclipse_keyple-gradle")
+            property("sonar.organization", "eclipse")
+            property("sonar.host.url", "https://sonarcloud.io")
+            property("sonar.login", System.getenv("SONAR_LOGIN"))
+            property("sonar.branch.name", System.getenv("BRANCH_NAME"))
         }
     }
     "install" {
