@@ -55,6 +55,8 @@ fun canBeUploaded(project: Project): Boolean {
     val canBeUploaded = !urlExists(repositoryUrl)
     if (!canBeUploaded) {
         println("Artifacts already exists on repository, no need to upload it again.")
+    } else {
+        println("Artifacts can safetly be uploaded.")
     }
     return canBeUploaded
 }
