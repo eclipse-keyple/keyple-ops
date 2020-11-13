@@ -123,7 +123,6 @@ tasks {
             property("sonar.organization", "eclipse")
             property("sonar.host.url", "https://sonarcloud.io")
             property("sonar.login", System.getenv("SONAR_LOGIN"))
-            property("sonar.branch.name", System.getenv("BRANCH_NAME"))
         }
     }
     "install" {

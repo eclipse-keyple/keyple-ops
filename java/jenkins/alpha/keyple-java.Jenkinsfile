@@ -73,13 +73,6 @@ pipeline {
                 }
             }
         }
-        stage('Keyple Examples: Build and Test next Alpha') {
-            steps{
-                container('java-builder') {
-                    sh "./gradlew -b java/example/calypso/remotese/build.gradle check -P keyple_version=${keypleVersion}"
-                }
-            }
-        }
         stage('Keyple Java: Commit/Tag/Push') {
             steps{
                 container('java-builder') {
@@ -110,7 +103,6 @@ pipeline {
                         sh './gradlew :java:component:keyple-core:uploadArchives ${uploadParams}'
                         sh './gradlew :java:component:keyple-calypso:uploadArchives ${uploadParams}'
                         sh './gradlew :java:component:keyple-plugin:keyple-plugin-pcsc:uploadArchives ${uploadParams}'
-                        sh './gradlew :java:component:keyple-plugin:keyple-plugin-remotese:uploadArchives ${uploadParams}'
                         sh './gradlew :java:component:keyple-plugin:keyple-plugin-stub:uploadArchives ${uploadParams}'
                         sh './gradlew --stop'
                     }
@@ -154,7 +146,6 @@ pipeline {
                     sh 'cp ./java/component/keyple-calypso/build/libs/keyple-java-calypso*.jar ./repository/java'
                     sh 'cp ./java/component/keyple-core/build/libs/keyple-java-core*.jar ./repository/java'
                     sh 'cp ./java/component/keyple-plugin/pcsc/build/libs/keyple-java-plugin*.jar ./repository/java'
-                    sh 'cp ./java/component/keyple-plugin/remotese/build/libs/keyple-java-plugin*.jar ./repository/java'
                     sh 'cp ./java/component/keyple-plugin/stub/build/libs/keyple-java-plugin*.jar ./repository/java'
                     sh 'cp ./java/example/calypso/android/nfc/build/outputs/apk/debug/*.apk ./repository/android'
                     sh 'cp ./java/example/calypso/android/omapi/build/outputs/apk/debug/*.apk ./repository/android'
