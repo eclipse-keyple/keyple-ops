@@ -1,4 +1,5 @@
 .gradle
 .idea
 java/keyple-gradle/build
+java/keyple-gradle/lib
 java/keyple-gradle/out

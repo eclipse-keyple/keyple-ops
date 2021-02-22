@@ -4,9 +4,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.plugins.ExtensionContainer
+import org.gradle.api.plugins.PluginContainer
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.*
 import java.io.File
 import java.nio.charset.Charset
@@ -30,6 +31,14 @@ internal class KeyplePluginTest {
                     .`when`(task).doFirst(any<Action<Task>>())
             task
         }.`when`(project).task(anyString())
+        doReturn("1.0.0").`when`(project).version
+        doReturn("org.eclipse.keyple").`when`(project).group
+
+        val plugins = mock(PluginContainer::class.java)
+        doReturn(plugins).`when`(project).plugins
+
+        val extensions = mock(ExtensionContainer::class.java)
+        doReturn(extensions).`when`(project).extensions
     }
 
     @Test
