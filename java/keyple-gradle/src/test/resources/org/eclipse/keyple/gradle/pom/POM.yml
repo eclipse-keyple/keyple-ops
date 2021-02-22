@@ -1,0 +1,51 @@
+description: "Description of the project"
+url: "Url of the project"
+organization:
+  name: "Name of the Organization"
+  url: "Website of the Organization"
+licenses:
+  - name: "Name of the license"
+    url: "Url of the license"
+    distribution: "Type of distribution of the license"
+developers:
+  - id: "dev1"
+    name: "Name of developer 1"
+    email: "Email of developer 1"
+    url: "Website of developer 1"
+    organization: "Organization of developer 1"
+    organizationUrl: "Organization website of developer 1"
+    timeZone: "TimeZone of developer 1"
+    roles:
+      - "Lead dev"
+      - "DevOps"
+  - id: "dev2"
+    name: "Name of developer 2"
+    email: "Email of developer 2"
+contributors:
+  - name: "Name of contributor 1"
+    email: "Email of contributor 1"
+    url: "Website of contributor 1"
+    organization: "Organization of contributor 1"
+    organizationUrl: "Organization website of contributor 1"
+    timeZone: "TimeZone of contributor 1"
+    roles:
+      - "Dev Android"
+  - name: "Name of contributor 2"
+    email: "Email of contributor 2"
+scm:
+  connection: "Connection to access the repository"
+  developerConnection: "Connection used by a developer to access the repository"
+  url: "Url of the repository"
+  tag: "Tag of the repository"
+distributionManagement:
+  downloadUrl: "Url where the artifacts can be downloaded"
+issueManagement:
+  system: "Issue system"
+  url: "Url of Issue system"
+ciManagement:
+  system: "CI system"
+  url: "Url of CI system"
+properties:
+  key1: value1
+  key2: value2
+  key3: value3

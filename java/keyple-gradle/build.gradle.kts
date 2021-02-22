@@ -4,7 +4,7 @@ import java.net.HttpURLConnection
 import java.io.IOException
 
 plugins {
-    maven
+    `maven-publish`
     kotlin("jvm") version "1.3.61"
     signing
     id("org.sonarqube") version "3.0"
@@ -16,14 +16,18 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.41")
         classpath("com.sun.istack:istack-commons-runtime:3.0.11")
     }
 }
 
 dependencies {
     implementation(gradleApi())
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.61")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.41")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.3.41")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.12.1")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.1")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.1")
     testImplementation("org.junit.jupiter:junit-jupiter:5.6.0")
     testImplementation("com.sun.istack:istack-commons-runtime:3.0.11")
     testImplementation("org.assertj:assertj-core:3.15.0")
@@ -60,7 +64,7 @@ fun canBeUploaded(project: Project): Boolean {
     if (!canBeUploaded) {
         println("Artifacts already exists on repository, no need to upload it again.")
     } else {
-        println("Artifacts can safetly be uploaded.")
+        println("Artifacts can safely be uploaded.")
     }
     return canBeUploaded
 }
@@ -81,7 +85,12 @@ if (project.hasProperty("signing.keyId")) {
     println("Signing artifacts.")
     signing {
         sign(configurations.archives.get())
+        sign(publishing.publications["mavenJava"])
     }
+}
+
+task("install") {
+    dependsOn("publishToMavenLocal")
 }
 
 tasks {
@@ -125,66 +134,53 @@ tasks {
             property("sonar.login", System.getenv("SONAR_LOGIN"))
         }
     }
-    "install" {
-        group = "publishing"
-        description = "Install Keyple Plugin in the local maven repository."
-    }
-    "uploadArchives"(Upload::class) {
-        onlyIf{
-            canBeUploaded(project)
-        }
-        dependsOn("install")
-        group = "publishing"
-        description = "Upload Keyple Plugin to sonatype."
-        repositories {
-            withConvention(MavenRepositoryHandlerConvention::class) {
-                mavenDeployer {
-                    if (project.hasProperty("signing.keyId")) {
-                        beforeDeployment { signing.signPom(this) }
-                    }
-                    withGroovyBuilder {
-                        "repository"("url" to releaseRepo) {
-                            "authentication"("userName" to ossrhUsername, "password" to ossrhPassword)
-                        }
-                        "snapshotRepository"("url" to snapshotRepo) {
-                            "authentication"("userName" to ossrhUsername, "password" to ossrhPassword)
-                        }
-                    }
-                    pom.project {
-                        withGroovyBuilder {
-                            "name"(project.description)
-                            "description"(project.description)
-                            "url"("https://projects.eclipse.org/projects/iot.keyple")
-                            "organization" {
-                                "name"("Eclipse Keyple")
-                                "url"("https://projects.eclipse.org/projects/iot.keyple")
-                            }
-                            "scm" {
-                                "connection"("scm:git:git://github.com/eclipse/keyple-ops.git")
-                                "developerConnection"("scm:git:https://github.com/eclipse/keyple-ops.git")
-                                "url"("http://github.com/eclipse/keyple-ops/tree/master")
-                            }
-                            "licenses" {
-                                "license" {
-                                    "name"("Eclipse Public License - v 2.0")
-                                    "url"("https://www.eclipse.org/legal/epl-2.0/")
-                                    "distribution"("repo")
-                                }
-                            }
-                            "developers" {
-                                "developer" {
-                                    "name"("Olivier Delcroix")
-                                    "email"("odelcroi@gmail.com")
-                                }
-                                "developer" {
-                                    "name"("Brice Ruppen")
-                                    "email"("brice.ruppen@armotic.fr")
-                                }
-                            }
+}
 
-                        }
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["kotlin"])
+            pom {
+                url.set("https://projects.eclipse.org/projects/iot.keyple")
+                organization {
+                    name.set("Eclipse Keyple")
+                    url.set("https://projects.eclipse.org/projects/iot.keyple")
+                }
+                licenses {
+                    license {
+                        name.set("Eclipse Public License - v 2.0")
+                        url.set("https://www.eclipse.org/legal/epl-2.0/")
+                        distribution.set("repo")
                     }
                 }
+                developers {
+                    developer {
+                        name.set("Olivier Delcroix")
+                        email.set("odelcroi@gmail.com")
+                    }
+                    developer {
+                        name.set("Brice Ruppen")
+                        email.set("brice.ruppen@armotic.fr")
+                    }
+                }
+                scm {
+                    connection.set("scm:git:git://github.com/eclipse/keyple-ops.git")
+                    developerConnection.set("scm:git:https://github.com/eclipse/keyple-ops.git")
+                    url.set("http://github.com/eclipse/keyple-ops/tree/master")
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            credentials {
+                username = ossrhUsername
+                password = ossrhPassword
+            }
+            if (version.toString().endsWith("-SNAPSHOT")) {
+                url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+            } else if (canBeUploaded(project)) {
+                url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
             }
         }
     }
