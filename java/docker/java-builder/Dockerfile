@@ -1,5 +1,5 @@
-# eclipsekeyple/java-builder:1
-FROM openjdk:8-jdk
+# eclipsekeyple/java-builder:2.0
+FROM openjdk:11-jdk
 LABEL maintainer Brice Ruppen <brice.ruppen@armotic.fr>, Olivier Delcroix <odelcroi@gmail.com>
 
 # PGP installation
@@ -11,9 +11,9 @@ RUN apt-get update \
     && gpg1 --version
 
 # Gradle installation
-ARG GRADLE_VERSION="5.6.4"
+ARG GRADLE_VERSION="6.8.3"
 ENV GRADLE_HOME="/opt/gradle/gradle-${GRADLE_VERSION}"
-ENV JAVA_OPTS="-Xmx1800m -XX:MaxPermSize=512m -Dfile.encoding=UTF-8 -XX:+HeapDumpOnOutOfMemoryError"
+ENV JAVA_OPTS="-Xmx1800m -Dfile.encoding=UTF-8 -XX:+HeapDumpOnOutOfMemoryError -XX:+IgnoreUnrecognizedVMOptions"
 RUN mkdir -p "/opt/gradle" \
  && cd "/opt/gradle" \
  && curl -fLsSo gradle.zip "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" \
@@ -31,14 +31,14 @@ ENV ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT}"
 ENV ANDROID_HOME="${ANDROID_SDK_ROOT}"
 ENV ANDROID_SDK="${ANDROID_SDK_ROOT}"
 RUN umask g+w \
- && curl -fLsSo sdk-tools.zip "https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip" \
+ && curl -fLsSo commandlinetools.zip "https://dl.google.com/android/repository/commandlinetools-linux-6858069_latest.zip" \
  && echo -n "Files extracted: " \
- && unzip -d "${ANDROID_SDK_ROOT}" sdk-tools.zip | grep -c 'inflating:' \
+ && unzip -d "${ANDROID_SDK_ROOT}" commandlinetools.zip | grep -c 'extracting:' \
  && mkdir -p "${HOME}/.android" \
  && touch "${HOME}/.android/repositories.cfg" \
- && update-alternatives --install "/usr/bin/sdkmanager" sdkmanager "${ANDROID_SDK_ROOT}/tools/bin/sdkmanager" 1 \
+ && update-alternatives --install "/usr/bin/sdkmanager" sdkmanager "${ANDROID_SDK_ROOT}/cmdline-tools/bin/sdkmanager" 1 \
  && yes | sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses \
- && rm -rf "sdk-tools.zip"
+ && rm -rf "commandlinetools.zip"
 
 RUN umask g+w \
  && sdkmanager --sdk_root=${ANDROID_SDK_ROOT} tools \
@@ -90,9 +90,9 @@ RUN umask g+w \
 RUN umask g+w \
  && mkdir gradle-wrapper \
  && cd gradle-wrapper \
- && gradle wrapper --gradle-version 4.5.1 \
- && ./gradlew -version \
  && gradle wrapper --gradle-version 5.6.4 \
+ && ./gradlew -version \
+ && gradle wrapper --gradle-version 6.8.3 \
  && ./gradlew -version \
  && gradle --stop \
  && cd /var/build \
@@ -110,13 +110,13 @@ RUN umask g+w \
  && ./gradlew --stop \
  && export keypleVersion=$(grep version java/component/keyple-core/gradle.properties | cut -d= -f2 | tr -d "[:space:]") \
  && echo "Working with keyple-java $keypleVersion" \
- && cd android/ \
- && ./gradlew :keyple-plugin:keyple-plugin-android-nfc:uploadArchives \
- && ./gradlew :keyple-plugin:keyple-plugin-android-omapi:uploadArchives \
- && ./gradlew --stop \
  && cd /var/build \
  && rm -rf "/var/build/keyple-java" "${GRADLE_USER_HOME}/daemon"
 
+#  && cd android/ \
+#  && ./gradlew :keyple-plugin:keyple-plugin-android-nfc:uploadArchives \
+#  && ./gradlew :keyple-plugin:keyple-plugin-android-omapi:uploadArchives \
+#  && ./gradlew --stop \
 ENTRYPOINT [ "/usr/local/bin/uid_entrypoint" ]
 
 LABEL version 1

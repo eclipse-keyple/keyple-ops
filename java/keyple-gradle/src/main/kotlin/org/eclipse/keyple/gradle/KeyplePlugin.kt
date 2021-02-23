@@ -1,17 +1,15 @@
 package org.eclipse.keyple.gradle
 
 import org.eclipse.keyple.gradle.pom.YamlToPom
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.maven.MavenDeployment
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
+import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.signing.SigningExtension
 import java.io.File
-import java.lang.IllegalStateException
-import java.net.URI
 import java.util.*
 
 /**
@@ -57,7 +55,7 @@ class KeyplePlugin : Plugin<Project> {
                 MavenPublication::class.java
             ) { publication ->
                 publication.from(project.components.getByName("java"))
-                val pomDetails = File(project.projectDir, "PUBLISH.yml")
+                val pomDetails = File(project.projectDir, "PUBLISHERS.yml")
                 if (pomDetails.exists()) {
                     YamlToPom(pomDetails.inputStream())
                         .use { publication.pom(it::inject) }
@@ -69,9 +67,11 @@ class KeyplePlugin : Plugin<Project> {
                     it.password = System.getenv("ossrhPassword") ?: ""
                 }
                 if (project.version.toString().endsWith("-SNAPSHOT")) {
-                    maven.url = URI.create("https://oss.sonatype.org/content/repositories/snapshots/")
+                    maven.url =
+                        project.uri("https://oss.sonatype.org/content/repositories/snapshots/")
                 } else {
-                    maven.url = URI.create("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                    maven.url =
+                        project.uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
                 }
             }
             if (project.hasProperty("signing.keyId")) {
@@ -81,6 +81,51 @@ class KeyplePlugin : Plugin<Project> {
                     signing.sign(extension.publications.getByName("mavenJava"))
                 }
             }
+        }
+        project.tasks.getByName("javadoc")
+            .doFirst { javadoc ->
+                val stylesheet = File(project.buildDir, "keyple-stylesheet.css")
+                stylesheet.outputStream().use {
+                    javaClass.getResourceAsStream("javadoc/keyple-stylesheet.css")?.copyTo(it)
+                }
+                (javadoc as Javadoc).options {
+                    it.encoding = "UTF-8"
+                    it.overview = "src/main/javadoc/overview.html"
+                    it.windowTitle = project.name + " - " + project.version
+                    it.header(
+                        "<a target=\"_parent\" href=\"https://keyple.org/\">" +
+                                "<img src=\"https://keyple.org/docs/api-reference/java-api/keyple-java-core/1.0.0/images/keyple.png\" height=\"20px\" style=\"background-color: white; padding: 3px; margin: 0 10px -7px 3px;\"/>" +
+                                "</a><span style=\"line-height: 30px\"> " + project.name + " - " + project.version + "</span>"
+                    )
+                        .docTitle(project.name + " - " + project.version)
+                        .stylesheetFile(stylesheet)
+                        .footer("Copyright &copy; Eclipse Foundation, Inc. All Rights Reserved.")
+                }
+            }
+        project.tasks.getByName("jar")
+            .doFirst { jar ->
+                copy(File(project.projectDir, "LICENCE"), File(project.buildDir, "/resources/main/META-INF/"))
+                copy(File(project.projectDir, "NOTICE.md"), File(project.buildDir, "/resources/main/META-INF/"))
+                (jar as Jar).manifest { manifest ->
+                    manifest.attributes(
+                        mapOf(
+                            "Implementation-Title" to project.name,
+                            "Implementation-Version" to project.version
+                        )
+                    )
+                }
+            }
+    }
+
+    private fun copy(source: File, target: File) {
+        if (!source.isFile) return;
+        if (target.isDirectory) {
+            File(target, source.name)
+                .outputStream()
+                .use { source.inputStream().copyTo(it) }
+        } else {
+            target.outputStream()
+                .use { source.inputStream().copyTo(it) }
         }
     }
 
@@ -100,7 +145,7 @@ class KeyplePlugin : Plugin<Project> {
             gradleProperties.store(it)
         }
 
-        println("Setting new version for ${task.project.description} to ${task.project.version}")
+        println("Setting new version for ${task.project.name} to ${task.project.version}")
     }
 
     /**
