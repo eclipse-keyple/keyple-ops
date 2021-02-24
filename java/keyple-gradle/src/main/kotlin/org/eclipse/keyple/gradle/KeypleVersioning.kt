@@ -19,8 +19,8 @@ class KeypleVersioning {
     fun hasNotAlreadyBeenReleased(project: Project): Boolean {
         val jarGroup = (project.group as String).replace('.', '/')
         val releasedVersion = project.version.toString().removeSuffix("-SNAPSHOT")
-        val jarName = "${project.property("artifactId")}-$releasedVersion.jar"
-        val repositoryPath = "$jarGroup/${project.property("artifactId")}/$releasedVersion/$jarName"
+        val jarName = "${project.name}-$releasedVersion.jar"
+        val repositoryPath = "$jarGroup/${project.name}/$releasedVersion/$jarName"
 
         val canBeUploaded = !urlExists(stagingRepo + repositoryPath)
                     && !urlExists(releaseRepo + repositoryPath)

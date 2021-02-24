@@ -6,6 +6,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.PluginContainer
+import org.gradle.api.tasks.TaskContainer
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
@@ -39,6 +40,12 @@ internal class KeyplePluginTest {
 
         val extensions = mock(ExtensionContainer::class.java)
         doReturn(extensions).`when`(project).extensions
+
+        val tasks = mock(TaskContainer::class.java)
+        doReturn(tasks).`when`(project).tasks
+
+        val task = mock(Task::class.java)
+        doReturn(task).`when`(tasks).getByName(anyString())
     }
 
     @Test

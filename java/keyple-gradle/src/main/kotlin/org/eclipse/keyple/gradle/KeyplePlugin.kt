@@ -12,6 +12,9 @@ import org.gradle.plugins.signing.SigningExtension
 import java.io.File
 import java.util.*
 
+val Project.title: String
+    get() = property("title") as String? ?: project.name
+
 /**
  * Define multiple tasks:
  * Use `./gradlew build` to build project
@@ -27,9 +30,19 @@ class KeyplePlugin : Plugin<Project> {
         versioning.snapshotProject(project)
 
         project.task("install")
+            .apply {
+                group = "publishing"
+                description =
+                    "Publishes all Maven publications produced by this project to the local Maven cache."
+            }
             .dependsOn("publishToMavenLocal")
 
         project.task("release")
+            .apply {
+                group = "publishing"
+                description =
+                    "Releases all Maven publications produced by this project to Maven Central."
+            }
             .also {
                 if (!versioning.hasNotAlreadyBeenReleased(project)) {
                     it.doFirst {
@@ -91,25 +104,32 @@ class KeyplePlugin : Plugin<Project> {
                 (javadoc as Javadoc).options {
                     it.encoding = "UTF-8"
                     it.overview = "src/main/javadoc/overview.html"
-                    it.windowTitle = project.name + " - " + project.version
+                    it.windowTitle = project.title + " - " + project.version
                     it.header(
                         "<a target=\"_parent\" href=\"https://keyple.org/\">" +
                                 "<img src=\"https://keyple.org/docs/api-reference/java-api/keyple-java-core/1.0.0/images/keyple.png\" height=\"20px\" style=\"background-color: white; padding: 3px; margin: 0 10px -7px 3px;\"/>" +
-                                "</a><span style=\"line-height: 30px\"> " + project.name + " - " + project.version + "</span>"
+                                "</a><span style=\"line-height: 30px\"> " + project.title + " - " + project.version + "</span>"
                     )
-                        .docTitle(project.name + " - " + project.version)
+                        .docTitle(project.title + " - " + project.version)
                         .stylesheetFile(stylesheet)
                         .footer("Copyright &copy; Eclipse Foundation, Inc. All Rights Reserved.")
                 }
             }
         project.tasks.getByName("jar")
             .doFirst { jar ->
-                copy(File(project.projectDir, "LICENCE"), File(project.buildDir, "/resources/main/META-INF/"))
-                copy(File(project.projectDir, "NOTICE.md"), File(project.buildDir, "/resources/main/META-INF/"))
+                println("Compiling ${project.title} version ${project.version}")
+                copy(
+                    File(project.projectDir, "LICENSE"),
+                    File(project.buildDir, "/resources/main/META-INF/")
+                )
+                copy(
+                    File(project.projectDir, "NOTICE.md"),
+                    File(project.buildDir, "/resources/main/META-INF/")
+                )
                 (jar as Jar).manifest { manifest ->
                     manifest.attributes(
                         mapOf(
-                            "Implementation-Title" to project.name,
+                            "Implementation-Title" to project.title,
                             "Implementation-Version" to project.version
                         )
                     )
@@ -119,14 +139,12 @@ class KeyplePlugin : Plugin<Project> {
 
     private fun copy(source: File, target: File) {
         if (!source.isFile) return;
-        if (target.isDirectory) {
-            File(target, source.name)
-                .outputStream()
-                .use { source.inputStream().copyTo(it) }
-        } else {
-            target.outputStream()
-                .use { source.inputStream().copyTo(it) }
+        if (!target.isDirectory) {
+            target.mkdirs()
         }
+        File(target, source.name)
+            .outputStream()
+            .use { source.inputStream().copyTo(it) }
     }
 
     /**
