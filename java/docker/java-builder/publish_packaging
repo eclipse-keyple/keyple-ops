@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+
+mkdir ./repository
+cp ./build/libs/${PROJECT_NAME}*.jar ./repository
+echo -n "Packaging: "
+ls -R ./repository
+
+VERSION_TYPE='releases'
+
+for file in ./repository/*-SNAPSHOT*; do
+    VERSION_TYPE='snapshots'
+done
+
+ssh genie.keyple@projects-storage.eclipse.org rm -rf "/home/data/httpd/download.eclipse.org/keyple/${VERSION_TYPE}"
+ssh genie.keyple@projects-storage.eclipse.org mkdir -p "/home/data/httpd/download.eclipse.org/keyple/${VERSION_TYPE}"
+scp -r ./repository/* genie.keyple@projects-storage.eclipse.org:"/home/data/httpd/download.eclipse.org/keyple/${VERSION_TYPE}"

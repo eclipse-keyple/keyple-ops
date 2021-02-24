@@ -13,7 +13,7 @@ import java.io.File
 import java.util.*
 
 val Project.title: String
-    get() = property("title") as String? ?: project.name
+    get() = property("title") as String? ?: name
 
 /**
  * Define multiple tasks:

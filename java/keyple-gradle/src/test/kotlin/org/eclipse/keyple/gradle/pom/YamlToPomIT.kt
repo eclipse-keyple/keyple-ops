@@ -37,8 +37,12 @@ internal class YamlToPomIT {
     fun transformYamlToPom() {
         val mavenPomMock = MavenPomMock();
         val project = mock(Project::class.java)
-        doReturn("Title").`when`(project).title
+        doReturn("IT Name").`when`(project).name
+        doReturn("IT Title").`when`(project).title
         doReturn("Description Fallback").`when`(project).description
+        doAnswer { a -> "Property ${a.getArgument<String>(0)}" }
+            .`when`(project)
+            .property(anyString())
 
         YamlToPom(javaClass.getResourceAsStream("POM.yml")!!, project)
             .use {
@@ -64,7 +68,7 @@ internal class YamlToPomIT {
         }
 
         override fun getName(): Property<String> {
-            TODO("Not yet implemented")
+            return checkPropertyEquals("Property title")
         }
 
         override fun getDescription(): Property<String> {
@@ -253,6 +257,7 @@ internal class YamlToPomIT {
                 override fun getDownloadUrl(): Property<String> {
                     return checkPropertyEquals("Url where the artifacts can be downloaded")
                 }
+
                 override fun relocation(action: Action<in MavenPomRelocation>?) {
                     TODO("Not yet implemented")
                 }

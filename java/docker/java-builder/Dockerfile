@@ -9,6 +9,7 @@ RUN apt-get update \
     && apt-get clean \
     && echo -n "Successfully installed " \
     && gpg1 --version
+COPY import_gpg /usr/local/bin/import_gpg
 
 # Gradle installation
 ARG GRADLE_VERSION="6.8.3"
@@ -53,7 +54,7 @@ RUN umask g+w \
  && yes | sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses
 
 RUN echo -n "Successfully installed " \
- && sdkmanager --list | sed -n '1,/Available/p' | head -n -2
+ && sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --list | sed -n '1,/Available/p' | head -n -2
 
 # Workspace creation
 RUN umask g+w \
@@ -82,7 +83,11 @@ RUN umask g+w \
  && chmod g+w ~ \
  && cd "/home/${USER}" \
  && mkdir -p ".gradle" ".android" \
- && touch ".android/repositories.cfg" 
+ && touch ".android/repositories.cfg" \
+ && mkdir -p /home/jenkins/agent/ /home/jenkins/.gradle \
+ && touch /home/jenkins/agent/gradle.properties \
+ && ln -sf /home/jenkins/agent/gradle.properties /home/jenkins/.gradle/gradle.properties \
+ && rm -rf /home/jenkins/agent
 
 #
 # Pre-Download Gradle wrappers
