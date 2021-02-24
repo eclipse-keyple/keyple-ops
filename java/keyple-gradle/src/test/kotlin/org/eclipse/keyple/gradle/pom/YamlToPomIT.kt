@@ -2,7 +2,9 @@ package org.eclipse.keyple.gradle.pom
 
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.entry
+import org.eclipse.keyple.gradle.title
 import org.gradle.api.Action
+import org.gradle.api.Project
 import org.gradle.api.XmlProvider
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
@@ -34,8 +36,11 @@ internal class YamlToPomIT {
     @Test
     fun transformYamlToPom() {
         val mavenPomMock = MavenPomMock();
+        val project = mock(Project::class.java)
+        doReturn("Title").`when`(project).title
+        doReturn("Description Fallback").`when`(project).description
 
-        YamlToPom(javaClass.getResourceAsStream("POM.yml")!!)
+        YamlToPom(javaClass.getResourceAsStream("POM.yml")!!, project)
             .use {
                 it.inject(mavenPomMock);
             }

@@ -70,7 +70,7 @@ class KeyplePlugin : Plugin<Project> {
                 publication.from(project.components.getByName("java"))
                 val pomDetails = File(project.projectDir, "PUBLISHERS.yml")
                 if (pomDetails.exists()) {
-                    YamlToPom(pomDetails.inputStream())
+                    YamlToPom(pomDetails.inputStream(), project)
                         .use { publication.pom(it::inject) }
                 }
             }
@@ -117,7 +117,6 @@ class KeyplePlugin : Plugin<Project> {
             }
         project.tasks.getByName("jar")
             .doFirst { jar ->
-                println("Compiling ${project.title} version ${project.version}")
                 copy(
                     File(project.projectDir, "LICENSE"),
                     File(project.buildDir, "/resources/main/META-INF/")

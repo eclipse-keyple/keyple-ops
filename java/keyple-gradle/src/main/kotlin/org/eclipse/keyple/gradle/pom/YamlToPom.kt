@@ -3,18 +3,22 @@ package org.eclipse.keyple.gradle.pom
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import org.eclipse.keyple.gradle.title
+import org.gradle.api.Project
 import org.gradle.api.publish.maven.MavenPom
 import java.io.Closeable
 import java.io.InputStream
 
 
-class YamlToPom(val yaml: InputStream) : Closeable {
+class YamlToPom(val yaml: InputStream, val project: Project) : Closeable {
 
     private val mapper = ObjectMapper(YAMLFactory()).registerKotlinModule()
 
     fun inject(pom: MavenPom) {
         val root = mapper.readValue(yaml, PomRoot::class.java)
+        pom.name.set(project.title)
         root.description?.let { pom.description.set(it) }
+            ?: pom.description.set(project.description)
         root.url?.let { pom.url.set(it) }
         root.organization?.let { organization ->
             pom.organization { pomOrganization ->

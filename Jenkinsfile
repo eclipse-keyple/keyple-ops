@@ -3,7 +3,7 @@ pipeline {
     agent {
         kubernetes {
             label 'keyple-gradle'
-            yaml javaBuilder('1')
+            yaml javaBuilder('2.0')
         }
     }
     stages {
