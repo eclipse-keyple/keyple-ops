@@ -59,7 +59,7 @@ pipeline {
                             fileId: 'gradle.properties',
                             targetLocation: '/home/jenkins/agent/gradle.properties')]) {
                         dir('java/keyple-gradle') {
-                            sh './gradlew uploadArchives --info'
+                            sh './gradlew publish --info'
                         }
                     }
                 }
