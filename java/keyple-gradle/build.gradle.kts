@@ -191,7 +191,6 @@ publishing {
 if (project.hasProperty("signing.keyId")) {
     println("Signing artifacts.")
     signing {
-        sign(configurations.archives.get())
         sign(publishing.publications["mavenJava"])
     }
 }
