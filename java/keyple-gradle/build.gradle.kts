@@ -4,7 +4,6 @@ import java.net.HttpURLConnection
 import java.io.IOException
 
 plugins {
-    `java-gradle-plugin`
     kotlin("jvm") version "1.3.61"
     signing
     jacoco
@@ -24,7 +23,6 @@ buildscript {
 
 dependencies {
     implementation(gradleApi())
-    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.3.61")
     implementation("com.fasterxml.jackson.core:jackson-core:2.12.1")
