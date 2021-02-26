@@ -15,7 +15,7 @@ spec:
         cpu: 250m
         memory: 1Gi
       limits:
-        cpu: 1
+        cpu: 2
         memory: 4Gi
     volumeMounts:
     - name: volume-known-hosts
