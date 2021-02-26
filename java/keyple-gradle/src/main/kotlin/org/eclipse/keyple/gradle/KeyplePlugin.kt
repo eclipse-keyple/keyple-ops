@@ -29,6 +29,11 @@ class KeyplePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         versioning.snapshotProject(project)
 
+        val licenseHeader = File(project.projectDir, "gradle/license_header.txt")
+        licenseHeader.outputStream().use {
+            javaClass.getResourceAsStream("license_header.txt")?.copyTo(it)
+        }
+
         project.task("install")
             .apply {
                 group = "publishing"
@@ -116,7 +121,6 @@ class KeyplePlugin : Plugin<Project> {
                         .footer("Copyright &copy; Eclipse Foundation, Inc. All Rights Reserved.")
                         .apply {
                             addBooleanOption("-no-module-directories", true)
-                            addBooleanOption("html5", true)
                         }
                 }
             }

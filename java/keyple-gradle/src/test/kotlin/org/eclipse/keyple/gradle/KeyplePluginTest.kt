@@ -146,7 +146,6 @@ internal class KeyplePluginTest {
 
         plugin.setNextAlphaVersion(tasks["setNextAlphaVersion"]!!)
 
-        verify(project)
-            .setVersion("0.9.0-alpha-3")
+        verify(project).version = "0.9.0-alpha-3"
     }
 }
