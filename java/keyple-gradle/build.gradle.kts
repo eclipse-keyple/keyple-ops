@@ -4,11 +4,12 @@ import java.net.HttpURLConnection
 import java.io.IOException
 
 plugins {
-    `maven-publish`
+    `java-gradle-plugin`
     kotlin("jvm") version "1.3.61"
     signing
-    id("org.sonarqube") version "3.0"
     jacoco
+    id("org.sonarqube") version "3.0"
+    `maven-publish`
 }
 
 buildscript {
@@ -16,15 +17,16 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.41")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61")
         classpath("com.sun.istack:istack-commons-runtime:3.0.11")
     }
 }
 
 dependencies {
     implementation(gradleApi())
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.3.41")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.3.41")
+    implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.3.61")
     implementation("com.fasterxml.jackson.core:jackson-core:2.12.1")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.1")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.1")
@@ -88,23 +90,31 @@ task("install") {
     dependsOn("publishToMavenLocal")
 }
 
+val sourcesJar by tasks.creating(Jar::class) {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allSource)
+}
+val javadocJar by tasks.creating(Jar::class) {
+    dependsOn.add("javadoc")
+    archiveClassifier.set("javadoc")
+    from("javadoc")
+}
+
 tasks {
-    val sourcesJar by creating(Jar::class) {
-        archiveClassifier.set("sources")
-        from(sourceSets.main.get().allSource)
-    }
     javadoc {
         options.encoding = "UTF-8"
-    }
-    val javadocJar by creating(Jar::class) {
-        dependsOn.add(javadoc)
-        archiveClassifier.set("javadoc")
-        from(javadoc)
     }
     artifacts {
         archives(sourcesJar)
         archives(javadocJar)
         archives(jar)
+    }
+    test {
+        useJUnitPlatform()
+        testLogging {
+            events("passed", "skipped", "failed")
+        }
+        finalizedBy("jacocoTestReport")
     }
     jacocoTestReport {
         dependsOn("test")
@@ -113,13 +123,6 @@ tasks {
             csv.isEnabled = false
             html.isEnabled = true
         }
-    }
-    test {
-        useJUnitPlatform()
-        testLogging {
-            events("passed", "skipped", "failed")
-        }
-        finalizedBy("jacocoTestReport")
     }
     sonarqube {
         properties {
@@ -135,7 +138,11 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["kotlin"])
+            artifact(sourcesJar)
+            artifact(javadocJar)
             pom {
+                name.set("Keyple Gradle Plugin")
+                description.set("Gradle Plugin that regroups common tasks used by all Keyple Projects.")
                 url.set("https://projects.eclipse.org/projects/iot.keyple")
                 organization {
                     name.set("Eclipse Keyple")
