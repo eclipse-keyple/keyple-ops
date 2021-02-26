@@ -27,9 +27,9 @@ internal class KeyplePluginTest {
             val task = mock(Task::class.java)
             tasks.put(name, task)
             doAnswer { project }
-                    .`when`(task).project
+                .`when`(task).project
             doAnswer { task }
-                    .`when`(task).doFirst(any<Action<Task>>())
+                .`when`(task).doFirst(any<Action<Task>>())
             task
         }.`when`(project).task(anyString())
         doReturn("1.0.0").`when`(project).version
@@ -55,48 +55,84 @@ internal class KeyplePluginTest {
         plugin.apply(project)
 
         verify(project)
-                .task("setVersion")
+            .task("setVersion")
 
         verify(tasks["setVersion"]!!)
-                .doFirst(any<Action<Task>>())
+            .doFirst(any<Action<Task>>())
 
         verify(project)
-                .task("getLastAlphaVersion")
+            .task("getLastAlphaVersion")
 
         verify(tasks["getLastAlphaVersion"]!!)
-                .doFirst(any<Action<Task>>())
+            .doFirst(any<Action<Task>>())
 
         verify(project)
-                .task("setNextAlphaVersion")
+            .task("setNextAlphaVersion")
 
         verify(tasks["setNextAlphaVersion"]!!)
-                .doFirst(any<Action<Task>>())
+            .doFirst(any<Action<Task>>())
     }
 
     @Test
-    fun setVersion() {
+    fun setVersion_withEmptyProperties() {
         val plugin = KeyplePlugin()
         plugin.apply(project)
         val task = tasks["setVersion"]!!
         val file = File.createTempFile("test", "gradle.properties")
+        val backup = File.createTempFile("test", "gradle.properties.bak")
         file.deleteOnExit()
+        backup.deleteOnExit()
         doReturn(file)
-                .`when`(project).file("gradle.properties")
+            .`when`(project).file("gradle.properties")
+        doReturn(backup)
+            .`when`(project).file("gradle.properties.bak")
         doReturn("1.2.3")
-                .`when`(project).version
+            .`when`(project).version
 
         plugin.setVersion(task)
 
-        assertThat(file.readText(Charset.forName("UTF-8"))).startsWith("version=1.2.3")
+        assertThat(file.readText(Charset.forName("UTF-8"))).startsWith("version = 1.2.3")
+    }
+
+    @Test
+    fun setVersion_withExistingProperties() {
+        val plugin = KeyplePlugin()
+        plugin.apply(project)
+        val task = tasks["setVersion"]!!
+        val file = File.createTempFile("test", "gradle.properties")
+        val backup = File.createTempFile("test", "gradle.properties.bak")
+        file.deleteOnExit()
+        backup.deleteOnExit()
+        file.printWriter(Charset.forName("UTF-8"))
+            .use {
+                it.println("first = 1")
+                it.println("version = 1.0.0")
+                it.println("second = 2")
+            }
+        doReturn(file)
+            .`when`(project).file("gradle.properties")
+        doReturn(backup)
+            .`when`(project).file("gradle.properties.bak")
+        doReturn("2.0.0")
+            .`when`(project).version
+
+        plugin.setVersion(task)
+
+        assertThat(file.readLines(Charset.forName("UTF-8")))
+            .containsExactly(
+                "first = 1",
+                "version = 2.0.0",
+                "second = 2"
+            )
     }
 
     @Test
     fun getLastAlphaVersion() {
         val plugin = KeyplePlugin()
         plugin.apply(project)
-        val task = tasks["getLastAlphaVersion"] !!
+        val task = tasks["getLastAlphaVersion"]!!
         doReturn("0.9.0")
-                .`when`(project).version
+            .`when`(project).version
 
         plugin.getLastAlphaVersion(task)
     }
@@ -106,11 +142,11 @@ internal class KeyplePluginTest {
         val plugin = KeyplePlugin()
         plugin.apply(project)
         doReturn("0.9.0")
-                .`when`(project).version
+            .`when`(project).version
 
         plugin.setNextAlphaVersion(tasks["setNextAlphaVersion"]!!)
 
         verify(project)
-                .setVersion("0.9.0-alpha-3")
+            .setVersion("0.9.0-alpha-3")
     }
 }

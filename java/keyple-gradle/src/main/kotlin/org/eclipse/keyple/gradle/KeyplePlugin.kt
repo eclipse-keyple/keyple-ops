@@ -111,8 +111,13 @@ class KeyplePlugin : Plugin<Project> {
                                 "</a><span style=\"line-height: 30px\"> " + project.title + " - " + project.version + "</span>"
                     )
                         .docTitle(project.title + " - " + project.version)
+                        .use(true)
                         .stylesheetFile(stylesheet)
                         .footer("Copyright &copy; Eclipse Foundation, Inc. All Rights Reserved.")
+                        .apply {
+                            addBooleanOption("-no-module-directories", true)
+                            addBooleanOption("html5", true)
+                        }
                 }
             }
         project.tasks.getByName("jar")
@@ -148,18 +153,28 @@ class KeyplePlugin : Plugin<Project> {
 
     /**
      * Sets version inside the gradle.properties file
-     * Usage: ./gradlew setVersion -Pversion=1.0.0
+     * Usage: ./gradlew setVersion -P version=1.0.0
      */
     fun setVersion(task: Task) {
-        val gradleProperties = Properties()
-        val gradleFile = task.project.file("gradle.properties")
-        if (gradleFile.exists()) {
-            gradleProperties.load(gradleFile.inputStream())
-        }
-        gradleProperties.setProperty("version", "${task.project.version}")
+        val backupFile = task.project.file("gradle.properties.bak")
+        backupFile.delete()
+        val propsFile = task.project.file("gradle.properties")
+        propsFile.renameTo(backupFile)
 
-        gradleFile.writer().use {
-            gradleProperties.store(it)
+        propsFile.printWriter().use {
+            var versionApplied = false
+            backupFile.readLines()
+                .forEach { line ->
+                    if(line.matches(Regex("version\\s*=.*"))) {
+                        versionApplied = true
+                        it.println("version = ${task.project.version}")
+                    } else {
+                        it.println(line)
+                    }
+                }
+            if (!versionApplied) {
+                it.println("version = ${task.project.version}")
+            }
         }
 
         println("Setting new version for ${task.project.name} to ${task.project.version}")
