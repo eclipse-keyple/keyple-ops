@@ -24,7 +24,7 @@ pipeline {
             steps{
                 container('java-builder') {
                     withCredentials([file(credentialsId: 'secret-subkeys.asc', variable: 'KEYRING')]) {
-                        sh '/usr/local/bin/import_gpg "${KEYRING}"'
+                        sh 'import_gpg "${KEYRING}"'
                     }
                 }
             }

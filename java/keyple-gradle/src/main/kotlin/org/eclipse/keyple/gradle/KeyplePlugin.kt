@@ -81,8 +81,12 @@ class KeyplePlugin : Plugin<Project> {
             }
             extension.repositories.maven { maven ->
                 maven.credentials {
-                    it.username = System.getenv("ossrhUsername") ?: ""
-                    it.password = System.getenv("ossrhPassword") ?: ""
+                    project.property("ossrhUsername")
+                        ?.toString()
+                        ?.let(it::setUsername)
+                    project.property("ossrhPassword")
+                        ?.toString()
+                        ?.let(it::setPassword)
                 }
                 if (project.version.toString().endsWith("-SNAPSHOT")) {
                     maven.url =
