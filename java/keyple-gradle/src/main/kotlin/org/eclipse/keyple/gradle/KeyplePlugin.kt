@@ -81,10 +81,10 @@ class KeyplePlugin : Plugin<Project> {
             }
             extension.repositories.maven { maven ->
                 maven.credentials {
-                    project.property("ossrhUsername")
+                    project.properties["ossrhUsername"]
                         ?.toString()
                         ?.let(it::setUsername)
-                    project.property("ossrhPassword")
+                    project.properties["ossrhPassword"]
                         ?.toString()
                         ?.let(it::setPassword)
                 }
