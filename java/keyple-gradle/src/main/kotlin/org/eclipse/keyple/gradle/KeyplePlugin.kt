@@ -124,7 +124,11 @@ class KeyplePlugin : Plugin<Project> {
                         .stylesheetFile(stylesheet)
                         .footer("Copyright &copy; Eclipse Foundation, Inc. All Rights Reserved.")
                         .apply {
-                            addBooleanOption("-no-module-directories", true)
+                            if (System.getProperty("java.version")
+                                    ?.split('.', limit = 2)
+                                    ?.get(0)?.toInt() ?: 0 >= 11) {
+                                addBooleanOption("-no-module-directories", true)
+                            }
                         }
                 }
             }

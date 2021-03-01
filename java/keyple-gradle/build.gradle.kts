@@ -13,6 +13,7 @@ plugins {
 
 buildscript {
     repositories {
+        mavenLocal()
         mavenCentral()
     }
     dependencies {
