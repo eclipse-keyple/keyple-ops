@@ -6,7 +6,7 @@ spec:
   containers:
   - name: java-builder
     image: eclipsekeyple/java-builder:${version}
-    imagePullPolicy: IfNotPresent
+    imagePullPolicy: Always
     command: ["/usr/local/bin/uid_entrypoint"]
     args: ["cat"]
     tty: true
