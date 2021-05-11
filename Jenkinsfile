@@ -37,11 +37,11 @@ pipeline {
                             fileId: 'gradle.properties',
                             targetLocation: '/home/jenkins/agent/gradle.properties')]) {
                         dir('java/keyple-gradle') {
-                            sh './gradlew clean assemble --info'
+                            sh './gradlew clean assemble --info --stacktrace'
                         }
                         catchError(buildResult: 'UNSTABLE', message: 'There were failing tests.', stageResult: 'UNSTABLE') {
                             dir('java/keyple-gradle') {
-                                sh './gradlew test --info'
+                                sh './gradlew test --info --stacktrace'
                             }
                         }
                         junit allowEmptyResults: true, testResults: 'java/keyple-gradle/build/test-results/test/*.xml'
@@ -59,7 +59,7 @@ pipeline {
                             fileId: 'gradle.properties',
                             targetLocation: '/home/jenkins/agent/gradle.properties')]) {
                         dir('java/keyple-gradle') {
-                            sh './gradlew publish --info'
+                            sh './gradlew publish --info --stacktrace'
                         }
                     }
                 }
@@ -74,7 +74,7 @@ pipeline {
                     container('java-builder') {
                         withCredentials([string(credentialsId: 'sonarcloud-token', variable: 'SONAR_LOGIN')]) {
                             dir('java/keyple-gradle') {
-                                sh './gradlew sonarqube --info'
+                                sh './gradlew sonarqube --info --stacktrace'
                             }
                         }
                     }
