@@ -46,11 +46,11 @@ RUN umask g+w \
  && yes | sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses
 
 RUN umask g+w \
- && sdkmanager --sdk_root=${ANDROID_SDK_ROOT} 'build-tools;26.0.3' \
+ && sdkmanager --sdk_root=${ANDROID_SDK_ROOT} 'build-tools;30.0.2' \
  && yes | sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses
 
 RUN umask g+w \
- && sdkmanager --sdk_root=${ANDROID_SDK_ROOT} 'platforms;android-26' \
+ && sdkmanager --sdk_root=${ANDROID_SDK_ROOT} 'platforms;android-30' \
  && yes | sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --licenses
 
 RUN echo -n "Successfully installed " \

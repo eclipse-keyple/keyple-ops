@@ -1,4 +1,10 @@
 def call(String version) {
+  imagePullPolicy = "IfNotPresent"
+  if (version == '2.0') version = '2.0.0'
+  if (version.endsWith('!') {
+    version = version.substring(0, version.length() - 1);
+    imagePullPolicy = "Always"
+  }
 	return """
 apiVersion: v1
 kind: Pod
@@ -6,7 +12,7 @@ spec:
   containers:
   - name: java-builder
     image: eclipsekeyple/java-builder:${version}
-    imagePullPolicy: Always
+    imagePullPolicy: ${imagePullPolicy}
     command: ["/usr/local/bin/uid_entrypoint"]
     args: ["cat"]
     tty: true

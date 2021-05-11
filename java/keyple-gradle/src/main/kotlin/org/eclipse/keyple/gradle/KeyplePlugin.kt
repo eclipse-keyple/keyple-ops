@@ -4,13 +4,13 @@ import org.eclipse.keyple.gradle.pom.YamlToPom
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.signing.SigningExtension
 import java.io.File
-import java.util.*
 
 val Project.title: String
     get() = property("title") as String? ?: name
@@ -30,8 +30,10 @@ class KeyplePlugin : Plugin<Project> {
         versioning.snapshotProject(project)
 
         val licenseHeader = File(project.projectDir, "gradle/license_header.txt")
-        licenseHeader.outputStream().use {
-            javaClass.getResourceAsStream("license_header.txt")?.copyTo(it)
+        if (licenseHeader.isFile) {
+            licenseHeader.outputStream().use {
+                javaClass.getResourceAsStream("license_header.txt")?.copyTo(it)
+            }
         }
 
         project.task("install")
@@ -47,11 +49,14 @@ class KeyplePlugin : Plugin<Project> {
                 group = "publishing"
                 description =
                     "Releases all Maven publications produced by this project to Maven Central."
-            }
-            .also {
                 if (!versioning.hasNotAlreadyBeenReleased(project)) {
-                    it.doFirst {
+                    doFirst {
                         project.version = project.version.toString().removeSuffix("-SNAPSHOT")
+                        project.repositories
+                            .removeIf {
+                                it is MavenArtifactRepository
+                                        && it.url.rawPath.contains("snapshot")
+                            }
                     }.finalizedBy("build", "test", "publish")
                 }
             }
@@ -72,7 +77,7 @@ class KeyplePlugin : Plugin<Project> {
                 "mavenJava",
                 MavenPublication::class.java
             ) { publication ->
-                publication.from(project.components.getByName("java"))
+                publication.from(project.components.findByName("java"))
                 val pomDetails = File(project.projectDir, "PUBLISHERS.yml")
                 if (pomDetails.exists()) {
                     YamlToPom(pomDetails.inputStream(), project)
@@ -100,12 +105,12 @@ class KeyplePlugin : Plugin<Project> {
                 project.plugins.apply("signing")
                 project.extensions.configure(SigningExtension::class.java) { signing ->
                     println("Signing artifacts.")
-                    signing.sign(extension.publications.getByName("mavenJava"))
+                    signing.sign(extension.publications.findByName("mavenJava"))
                 }
             }
         }
-        project.tasks.getByName("javadoc")
-            .doFirst { javadoc ->
+        project.tasks.findByName("javadoc")
+            ?.doFirst { javadoc ->
                 val stylesheet = File(project.buildDir, "keyple-stylesheet.css")
                 stylesheet.outputStream().use {
                     javaClass.getResourceAsStream("javadoc/keyple-stylesheet.css")?.copyTo(it)
@@ -126,14 +131,15 @@ class KeyplePlugin : Plugin<Project> {
                         .apply {
                             if (System.getProperty("java.version")
                                     ?.split('.', limit = 2)
-                                    ?.get(0)?.toInt() ?: 0 >= 11) {
+                                    ?.get(0)?.toInt() ?: 0 >= 11
+                            ) {
                                 addBooleanOption("-no-module-directories", true)
                             }
                         }
                 }
             }
-        project.tasks.getByName("jar")
-            .doFirst { jar ->
+        project.tasks.findByName("jar")
+            ?.doFirst { jar ->
                 copy(
                     File(project.projectDir, "LICENSE"),
                     File(project.buildDir, "/resources/main/META-INF/")
@@ -177,7 +183,7 @@ class KeyplePlugin : Plugin<Project> {
             var versionApplied = false
             backupFile.readLines()
                 .forEach { line ->
-                    if(line.matches(Regex("version\\s*=.*"))) {
+                    if (line.matches(Regex("version\\s*=.*"))) {
                         versionApplied = true
                         it.println("version = ${task.project.version}")
                     } else {
