@@ -29,11 +29,14 @@ class KeyplePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         versioning.snapshotProject(project)
 
-        val licenseHeader = File(project.projectDir, "gradle/license_header.txt")
-        if (licenseHeader.isFile) {
-            licenseHeader.outputStream().use {
-                javaClass.getResourceAsStream("license_header.txt")?.copyTo(it)
-            }
+        val licenseHeaderParent = File(project.projectDir, "gradle/")
+        licenseHeaderParent.mkdirs()
+        val licenseHeader = File(licenseHeaderParent,"license_header.txt")
+        if (!licenseHeader.isFile) {
+            licenseHeader.createNewFile()
+        }
+        licenseHeader.outputStream().use {
+            javaClass.getResourceAsStream("license_header.txt")?.copyTo(it)
         }
 
         project.task("install")
