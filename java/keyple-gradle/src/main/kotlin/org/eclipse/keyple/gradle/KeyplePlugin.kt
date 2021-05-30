@@ -98,7 +98,7 @@ class KeyplePlugin : Plugin<Project> {
                 }
                 if (project.version.toString().endsWith("-SNAPSHOT")) {
                     maven.url =
-                        project.uri("https://oss.sonatype.org/content/repositories/snapshots/")
+                        project.uri("http://localhost:8081/repository/maven-snapshots/")
                 } else {
                     maven.url =
                         project.uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
@@ -109,6 +109,13 @@ class KeyplePlugin : Plugin<Project> {
                 project.extensions.configure(SigningExtension::class.java) { signing ->
                     println("Signing artifacts.")
                     signing.sign(extension.publications.findByName("mavenJava"))
+                }
+            }
+            if (project.hasProperty("signing.secretKeyRingFile")) {
+                var secretFile = project.property("signing.secretKeyRingFile") as String
+                if (secretFile.contains("~")) {
+                    project.setProperty("signing.secretKeyRingFile",
+                        secretFile.replace("~", System.getProperty("user.home")))
                 }
             }
         }
