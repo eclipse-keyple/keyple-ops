@@ -98,7 +98,7 @@ class KeyplePlugin : Plugin<Project> {
                 }
                 if (project.version.toString().endsWith("-SNAPSHOT")) {
                     maven.url =
-                        project.uri("http://localhost:8081/repository/maven-snapshots/")
+                        project.uri("https://oss.sonatype.org/content/repositories/snapshots/")
                 } else {
                     maven.url =
                         project.uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
@@ -125,23 +125,24 @@ class KeyplePlugin : Plugin<Project> {
                 stylesheet.outputStream().use {
                     javaClass.getResourceAsStream("javadoc/keyple-stylesheet.css")?.copyTo(it)
                 }
+                val javadocLogo = project.property("javadoc.logo") as String?
+                    ?: "<a target=\"_parent\" href=\"https://keyple.org/\"><img src=\"https://keyple.org/docs/api-reference/java-api/keyple-java-core/1.0.0/images/keyple.png\" height=\"20px\" style=\"background-color: white; padding: 3px; margin: 0 10px -7px 3px;\"/></a>"
+                val javadocCopyright = project.property("javadoc.copyright") as String?
+                    ?: "Copyright &copy; Eclipse Foundation, Inc. All Rights Reserved."
                 (javadoc as Javadoc).options {
                     it.encoding = "UTF-8"
                     it.overview = "src/main/javadoc/overview.html"
                     it.windowTitle = project.title + " - " + project.version
-                    it.header(
-                        "<a target=\"_parent\" href=\"https://keyple.org/\">" +
-                                "<img src=\"https://keyple.org/docs/api-reference/java-api/keyple-java-core/1.0.0/images/keyple.png\" height=\"20px\" style=\"background-color: white; padding: 3px; margin: 0 10px -7px 3px;\"/>" +
-                                "</a><span style=\"line-height: 30px\"> " + project.title + " - " + project.version + "</span>"
-                    )
+                    it.header(javadocLogo +
+                                "<span style=\"line-height: 30px\"> " + project.title + " - " + project.version + "</span>")
                         .docTitle(project.title + " - " + project.version)
                         .use(true)
                         .stylesheetFile(stylesheet)
-                        .footer("Copyright &copy; Eclipse Foundation, Inc. All Rights Reserved.")
+                        .footer(javadocCopyright)
                         .apply {
-                            if (System.getProperty("java.version")
+                            if ((System.getProperty("java.version")
                                     ?.split('.', limit = 2)
-                                    ?.get(0)?.toInt() ?: 0 >= 11
+                                    ?.get(0)?.toInt() ?: 0) >= 11
                             ) {
                                 addBooleanOption("-no-module-directories", true)
                             }
