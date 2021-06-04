@@ -96,12 +96,14 @@ class KeyplePlugin : Plugin<Project> {
                         ?.toString()
                         ?.let(it::setPassword)
                 }
+                val sonatypeUrl = project.property("sonatype.url") as String?
+                    ?: "https://oss.sonatype.org"
                 if (project.version.toString().endsWith("-SNAPSHOT")) {
                     maven.url =
-                        project.uri("https://oss.sonatype.org/content/repositories/snapshots/")
+                        project.uri("${sonatypeUrl}/content/repositories/snapshots/")
                 } else {
                     maven.url =
-                        project.uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                        project.uri("${sonatypeUrl}/service/local/staging/deploy/maven2/")
                 }
             }
             if (project.hasProperty("signing.keyId")) {
