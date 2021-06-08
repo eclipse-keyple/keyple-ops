@@ -132,7 +132,6 @@ class KeyplePlugin : Plugin<Project> {
                 val javadocCopyright = project.property("javadoc.copyright") as String?
                     ?: "Copyright &copy; Eclipse Foundation, Inc. All Rights Reserved."
                 (javadoc as Javadoc).options {
-                    it.encoding = "UTF-8"
                     it.overview = "src/main/javadoc/overview.html"
                     it.windowTitle = project.title + " - " + project.version
                     it.header(javadocLogo +
@@ -192,23 +191,25 @@ class KeyplePlugin : Plugin<Project> {
         val propsFile = task.project.file("gradle.properties")
         propsFile.renameTo(backupFile)
 
+        var version = task.project.version as String
+        version = version.removeSuffix("-SNAPSHOT")
         propsFile.printWriter().use {
             var versionApplied = false
             backupFile.readLines()
                 .forEach { line ->
                     if (line.matches(Regex("version\\s*=.*"))) {
                         versionApplied = true
-                        it.println("version = ${task.project.version}")
+                        it.println("version = $version")
                     } else {
                         it.println(line)
                     }
                 }
             if (!versionApplied) {
-                it.println("version = ${task.project.version}")
+                it.println("version = $version")
             }
         }
 
-        println("Setting new version for ${task.project.name} to ${task.project.version}")
+        println("Setting new version for ${task.project.name} to $version")
     }
 
     /**
