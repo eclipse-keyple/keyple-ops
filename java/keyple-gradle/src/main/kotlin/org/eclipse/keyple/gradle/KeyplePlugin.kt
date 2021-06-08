@@ -28,6 +28,9 @@ class KeyplePlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         versioning.snapshotProject(project)
+        val property = { name: String ->
+            project.properties[name]?.toString()
+        }
 
         val licenseHeaderParent = File(project.projectDir, "gradle/")
         licenseHeaderParent.mkdirs()
@@ -89,15 +92,10 @@ class KeyplePlugin : Plugin<Project> {
             }
             extension.repositories.maven { maven ->
                 maven.credentials {
-                    project.properties["ossrhUsername"]
-                        ?.toString()
-                        ?.let(it::setUsername)
-                    project.properties["ossrhPassword"]
-                        ?.toString()
-                        ?.let(it::setPassword)
+                    property("ossrhUsername")?.let(it::setUsername)
+                    property("ossrhPassword")?.let(it::setPassword)
                 }
-                val sonatypeUrl = project.property("sonatype.url") as String?
-                    ?: "https://oss.sonatype.org"
+                val sonatypeUrl = property("sonatype.url") ?: "https://oss.sonatype.org"
                 if (project.version.toString().endsWith("-SNAPSHOT")) {
                     maven.url =
                         project.uri("${sonatypeUrl}/content/repositories/snapshots/")
@@ -114,8 +112,8 @@ class KeyplePlugin : Plugin<Project> {
                 }
             }
             if (project.hasProperty("signing.secretKeyRingFile")) {
-                var secretFile = project.property("signing.secretKeyRingFile") as String
-                if (secretFile.contains("~")) {
+                val secretFile = property("signing.secretKeyRingFile")
+                if (secretFile?.contains("~") == true) {
                     project.setProperty("signing.secretKeyRingFile",
                         secretFile.replace("~", System.getProperty("user.home")))
                 }
@@ -127,9 +125,9 @@ class KeyplePlugin : Plugin<Project> {
                 stylesheet.outputStream().use {
                     javaClass.getResourceAsStream("javadoc/keyple-stylesheet.css")?.copyTo(it)
                 }
-                val javadocLogo = project.property("javadoc.logo") as String?
+                val javadocLogo = property("javadoc.logo")
                     ?: "<a target=\"_parent\" href=\"https://keyple.org/\"><img src=\"https://keyple.org/docs/api-reference/java-api/keyple-java-core/1.0.0/images/keyple.png\" height=\"20px\" style=\"background-color: white; padding: 3px; margin: 0 10px -7px 3px;\"/></a>"
-                val javadocCopyright = project.property("javadoc.copyright") as String?
+                val javadocCopyright = property("javadoc.copyright")
                     ?: "Copyright &copy; Eclipse Foundation, Inc. All Rights Reserved."
                 (javadoc as Javadoc).options {
                     it.overview = "src/main/javadoc/overview.html"
