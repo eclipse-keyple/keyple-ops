@@ -28,6 +28,7 @@ class KeyplePlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         versioning.snapshotProject(project)
+        println("Using Keyple Gradle v" + javaClass.`package`.implementationVersion)
         val property = { name: String ->
             project.properties[name]?.toString()
         }

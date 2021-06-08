@@ -100,6 +100,13 @@ val javadocJar by tasks.creating(Jar::class) {
 }
 
 tasks {
+    jar {
+        manifest {
+            attributes(
+                Pair("Implementation-Title", project.name),
+                Pair("Implementation-Version", project.version))
+        }
+    }
     javadoc {
         options.encoding = "UTF-8"
     }
