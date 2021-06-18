@@ -11,6 +11,8 @@ import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.signing.SigningExtension
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
 
 val Project.title: String
     get() = property("title") as String? ?: name
@@ -27,15 +29,17 @@ class KeyplePlugin : Plugin<Project> {
     val versioning = KeypleVersioning()
 
     override fun apply(project: Project) {
-        versioning.snapshotProject(project)
-        println("Using Keyple Gradle " + javaClass.`package`.implementationVersion)
         val property = { name: String ->
             project.properties[name]?.toString()
         }
 
+        property("sonatype.url")?.let { versioning.repoServer = it }
+        versioning.snapshotProject(project)
+        println("Using Keyple Gradle " + javaClass.`package`.implementationVersion)
+
         val licenseHeaderParent = File(project.projectDir, "gradle/")
         licenseHeaderParent.mkdirs()
-        val licenseHeader = File(licenseHeaderParent,"license_header.txt")
+        val licenseHeader = File(licenseHeaderParent, "license_header.txt")
         if (!licenseHeader.isFile) {
             licenseHeader.createNewFile()
         }
@@ -56,6 +60,9 @@ class KeyplePlugin : Plugin<Project> {
                 group = "publishing"
                 description =
                     "Releases all Maven publications produced by this project to Maven Central."
+                outputs.upToDateWhen {
+                    !versioning.hasNotAlreadyBeenReleased(it.project)
+                }
                 if (!versioning.hasNotAlreadyBeenReleased(project)) {
                     doFirst {
                         project.version = project.version.toString().removeSuffix("-SNAPSHOT")
@@ -96,13 +103,12 @@ class KeyplePlugin : Plugin<Project> {
                     property("ossrhUsername")?.let(it::setUsername)
                     property("ossrhPassword")?.let(it::setPassword)
                 }
-                val sonatypeUrl = property("sonatype.url") ?: "https://oss.sonatype.org"
                 if (project.version.toString().endsWith("-SNAPSHOT")) {
                     maven.url =
-                        project.uri("${sonatypeUrl}/content/repositories/snapshots/")
+                        project.uri(versioning.snapshotsRepo)
                 } else {
                     maven.url =
-                        project.uri("${sonatypeUrl}/service/local/staging/deploy/maven2/")
+                        project.uri(versioning.stagingRepo)
                 }
             }
             if (project.hasProperty("signing.keyId")) {
@@ -115,8 +121,10 @@ class KeyplePlugin : Plugin<Project> {
             if (project.hasProperty("signing.secretKeyRingFile")) {
                 val secretFile = property("signing.secretKeyRingFile")
                 if (secretFile?.contains("~") == true) {
-                    project.setProperty("signing.secretKeyRingFile",
-                        secretFile.replace("~", System.getProperty("user.home")))
+                    project.setProperty(
+                        "signing.secretKeyRingFile",
+                        secretFile.replace("~", System.getProperty("user.home"))
+                    )
                 }
             }
         }
@@ -133,8 +141,10 @@ class KeyplePlugin : Plugin<Project> {
                 (javadoc as Javadoc).options {
                     it.overview = "src/main/javadoc/overview.html"
                     it.windowTitle = project.title + " - " + project.version
-                    it.header(javadocLogo +
-                                "<span style=\"line-height: 30px\"> " + project.title + " - " + project.version + "</span>")
+                    it.header(
+                        javadocLogo +
+                                "<span style=\"line-height: 30px\"> " + project.title + " - " + project.version + "</span>"
+                    )
                         .docTitle(project.title + " - " + project.version)
                         .use(true)
                         .stylesheetFile(stylesheet)
@@ -179,6 +189,7 @@ class KeyplePlugin : Plugin<Project> {
             .outputStream()
             .use { source.inputStream().copyTo(it) }
     }
+
 
     /**
      * Sets version inside the gradle.properties file

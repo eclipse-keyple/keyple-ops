@@ -7,13 +7,15 @@ import java.net.URL
 
 class KeypleVersioning {
 
-    val snapshotRepo= "https://oss.sonatype.org/content/repositories/snapshots/"
-    val releaseRepo = "https://oss.sonatype.org/content/repositories/releases/"
-    val stagingRepo = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+    var repoServer = "https://oss.sonatype.org"
+    val snapshotsRepo get() = "${repoServer}/content/repositories/snapshots/"
+    val releasesRepo get() = "${repoServer}/content/repositories/releases/"
+    val stagingRepo get() = "${repoServer}/service/local/staging/deploy/maven2/"
 
     fun snapshotProject(project: Project) {
         val currentVersion = project.version.toString()
-        project.version = if (currentVersion.endsWith("-SNAPSHOT")) currentVersion else "$currentVersion-SNAPSHOT"
+        project.version =
+            if (currentVersion.endsWith("-SNAPSHOT")) currentVersion else "$currentVersion-SNAPSHOT"
     }
 
     fun hasNotAlreadyBeenReleased(project: Project): Boolean {
@@ -23,7 +25,7 @@ class KeypleVersioning {
         val repositoryPath = "$jarGroup/${project.name}/$releasedVersion/$jarName"
 
         val canBeUploaded = !urlExists(stagingRepo + repositoryPath)
-                    && !urlExists(releaseRepo + repositoryPath)
+                && !urlExists(releasesRepo + repositoryPath)
         if (!canBeUploaded) {
             println("Artifacts already released, no need to upload it again.")
         }
@@ -47,12 +49,12 @@ class KeypleVersioning {
         val metadataUrl = "https://repo1.maven.org/maven2/org/eclipse/keyple/keyple-java-core/maven-metadata.xml"
         val metadataStream = URL(metadataUrl).openStream()
         val metadata = KeypleMarshaller().unmarshal(metadataStream, MavenGroupMetadata::class.java)
-        val lastVersion= metadata
-                .versioning
-                .versions
-                .filter { it.startsWith("$mainVersion-alpha") }
-                .sorted()
-                .lastOrNull()
+        val lastVersion = metadata
+            .versioning
+            .versions
+            .filter { it.startsWith("$mainVersion-alpha") }
+            .sorted()
+            .lastOrNull()
         return lastVersion
     }
 
@@ -60,10 +62,10 @@ class KeypleVersioning {
         val mainVersion = baseVersion.replace(Regex("-.+"), "")
         val lastVersion = getLastAlphaVersionFrom(mainVersion)
         val alphaVersion = lastVersion
-                ?.replace(Regex(".*-alpha-"), "")
-                ?.toInt()
-                ?.run { this + 1 }
-                ?: 1
+            ?.replace(Regex(".*-alpha-"), "")
+            ?.toInt()
+            ?.run { this + 1 }
+            ?: 1
         return "$mainVersion-alpha-$alphaVersion"
     }
 }

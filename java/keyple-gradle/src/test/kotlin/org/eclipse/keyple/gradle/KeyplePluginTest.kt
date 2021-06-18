@@ -7,6 +7,7 @@ import org.gradle.api.Task
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskOutputs
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
@@ -30,6 +31,8 @@ internal class KeyplePluginTest {
                 .`when`(task).project
             doAnswer { task }
                 .`when`(task).doFirst(any<Action<Task>>())
+            doAnswer { mock(TaskOutputs::class.java) }
+                .`when`(task).outputs
             task
         }.`when`(project).task(anyString())
         doReturn("1.0.0").`when`(project).version
