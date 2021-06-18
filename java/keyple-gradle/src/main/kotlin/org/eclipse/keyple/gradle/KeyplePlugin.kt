@@ -63,7 +63,7 @@ class KeyplePlugin : Plugin<Project> {
                 outputs.upToDateWhen {
                     !versioning.hasNotAlreadyBeenReleased(it.project)
                 }
-                if (!versioning.hasNotAlreadyBeenReleased(project)) {
+                if (versioning.hasNotAlreadyBeenReleased(project)) {
                     doFirst {
                         project.version = project.version.toString().removeSuffix("-SNAPSHOT")
                         project.repositories
