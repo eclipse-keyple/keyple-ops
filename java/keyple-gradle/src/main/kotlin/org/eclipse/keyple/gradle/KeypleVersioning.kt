@@ -8,9 +8,16 @@ import java.net.URL
 class KeypleVersioning {
 
     var repoServer = "https://oss.sonatype.org"
+    var isRelease = false
+    var isAlreadyReleased = false
     val snapshotsRepo get() = "${repoServer}/content/repositories/snapshots/"
     val releasesRepo get() = "${repoServer}/content/repositories/releases/"
     val stagingRepo get() = "${repoServer}/service/local/staging/deploy/maven2/"
+
+    fun init(project: Project) {
+        project.prop("sonatype.url")?.let { repoServer = it }
+        checkIfAlreadyReleased(project)
+    }
 
     fun snapshotProject(project: Project) {
         val currentVersion = project.version.toString()
@@ -18,18 +25,16 @@ class KeypleVersioning {
             if (currentVersion.endsWith("-SNAPSHOT")) currentVersion else "$currentVersion-SNAPSHOT"
     }
 
-    fun hasNotAlreadyBeenReleased(project: Project): Boolean {
+    private fun checkIfAlreadyReleased(project: Project) {
         val jarGroup = (project.group as String).replace('.', '/')
         val releasedVersion = project.version.toString().removeSuffix("-SNAPSHOT")
-        val jarName = "${project.name}-$releasedVersion.jar"
-        val repositoryPath = "$jarGroup/${project.name}/$releasedVersion/$jarName"
+        val pomName = "${project.name}-$releasedVersion.pom"
+        val repositoryPath = "$jarGroup/${project.name}/$releasedVersion/$pomName"
 
-        val canBeUploaded = !urlExists(stagingRepo + repositoryPath)
-                && !urlExists(releasesRepo + repositoryPath)
-        if (!canBeUploaded) {
+        isAlreadyReleased = urlExists(releasesRepo + repositoryPath)
+        if (isAlreadyReleased) {
             println("Artifacts already released, no need to upload it again.")
         }
-        return canBeUploaded
     }
 
     fun urlExists(repositoryUrl: String): Boolean {

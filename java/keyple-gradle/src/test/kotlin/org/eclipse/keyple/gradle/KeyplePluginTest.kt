@@ -4,6 +4,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.TaskContainer
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Test
 import org.mockito.Mockito.*
 import java.io.File
 import java.nio.charset.Charset
+import java.util.*
 
 
 internal class KeyplePluginTest {
@@ -36,6 +39,10 @@ internal class KeyplePluginTest {
             task
         }.`when`(project).task(anyString())
         doReturn("1.0.0").`when`(project).version
+        val properties = HashMap<String, Any>()
+        doReturn(properties).`when`(project).properties
+        val repositories = mock(RepositoryHandler::class.java)
+        doReturn(repositories).`when`(project).repositories
         doReturn("org.eclipse.keyple").`when`(project).group
 
         val plugins = mock(PluginContainer::class.java)

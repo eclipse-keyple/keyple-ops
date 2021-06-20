@@ -1,6 +1,7 @@
 package org.eclipse.keyple.gradle
 
 import org.eclipse.keyple.gradle.pom.YamlToPom
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -17,6 +18,10 @@ import java.net.URL
 val Project.title: String
     get() = property("title") as String? ?: name
 
+fun Project.prop(name: String): String? {
+    return properties[name]?.toString()
+}
+
 /**
  * Define multiple tasks:
  * Use `./gradlew build` to build project
@@ -29,13 +34,10 @@ class KeyplePlugin : Plugin<Project> {
     val versioning = KeypleVersioning()
 
     override fun apply(project: Project) {
-        val property = { name: String ->
-            project.properties[name]?.toString()
-        }
-
-        property("sonatype.url")?.let { versioning.repoServer = it }
+        versioning.init(project)
         versioning.snapshotProject(project)
         println("Using Keyple Gradle " + javaClass.`package`.implementationVersion)
+        setupTasks(project)
 
         val licenseHeaderParent = File(project.projectDir, "gradle/")
         licenseHeaderParent.mkdirs()
@@ -47,6 +49,59 @@ class KeyplePlugin : Plugin<Project> {
             javaClass.getResourceAsStream("license_header.txt")?.copyTo(it)
         }
 
+        project.plugins.apply("maven-publish")
+        project.extensions.configure(
+            PublishingExtension::class.java,
+            configurePublishing(project)
+        )
+        project.tasks.findByName("javadoc")?.doFirst { javadoc ->
+            val stylesheet = File(project.buildDir, "keyple-stylesheet.css")
+            stylesheet.outputStream().use {
+                javaClass.getResourceAsStream("javadoc/keyple-stylesheet.css")?.copyTo(it)
+            }
+            val javadocLogo = project.prop("javadoc.logo")
+                ?: "<a target=\"_parent\" href=\"https://keyple.org/\"><img src=\"https://keyple.org/docs/api-reference/java-api/keyple-java-core/1.0.0/images/keyple.png\" height=\"20px\" style=\"background-color: white; padding: 3px; margin: 0 10px -7px 3px;\"/></a>"
+            val javadocCopyright = project.prop("javadoc.copyright")
+                ?: "Copyright &copy; Eclipse Foundation, Inc. All Rights Reserved."
+            (javadoc as Javadoc).options {
+                it.overview = "src/main/javadoc/overview.html"
+                it.windowTitle = project.title + " - " + project.version
+                it.header("${javadocLogo}<span style=\"line-height: 30px\"> ${project.title} - ${project.version}</span>")
+                    .docTitle(project.title + " - " + project.version)
+                    .use(true)
+                    .stylesheetFile(stylesheet)
+                    .footer(javadocCopyright)
+                    .apply {
+                        if ((System.getProperty("java.version")
+                                ?.split('.', limit = 2)
+                                ?.get(0)?.toInt() ?: 0) >= 11
+                        ) {
+                            addBooleanOption("-no-module-directories", true)
+                        }
+                    }
+            }
+        }
+        project.tasks.findByName("jar")?.doFirst { jar ->
+            copy(
+                File(project.projectDir, "LICENSE"),
+                File(project.buildDir, "/resources/main/META-INF/")
+            )
+            copy(
+                File(project.projectDir, "NOTICE.md"),
+                File(project.buildDir, "/resources/main/META-INF/")
+            )
+            (jar as Jar).manifest { manifest ->
+                manifest.attributes(
+                    mapOf(
+                        "Implementation-Title" to project.title,
+                        "Implementation-Version" to project.version
+                    )
+                )
+            }
+        }
+    }
+
+    private fun setupTasks(project: Project) {
         project.task("install")
             .apply {
                 group = "publishing"
@@ -60,18 +115,17 @@ class KeyplePlugin : Plugin<Project> {
                 group = "publishing"
                 description =
                     "Releases all Maven publications produced by this project to Maven Central."
-                outputs.upToDateWhen {
-                    !versioning.hasNotAlreadyBeenReleased(it.project)
-                }
-                if (versioning.hasNotAlreadyBeenReleased(project)) {
-                    doFirst {
-                        project.version = project.version.toString().removeSuffix("-SNAPSHOT")
-                        project.repositories
-                            .removeIf {
-                                it is MavenArtifactRepository
-                                        && it.url.rawPath.contains("snapshot")
-                            }
-                    }.finalizedBy("build", "test", "publish")
+                versioning.isRelease = true
+                outputs.upToDateWhen { versioning.isAlreadyReleased }
+
+                project.version = project.version.toString().removeSuffix("-SNAPSHOT")
+                project.repositories
+                    .removeIf {
+                        it is MavenArtifactRepository
+                                && it.url.rawPath.contains("snapshot")
+                    }
+                if (!versioning.isAlreadyReleased) {
+                    dependsOn("publish")
                 }
             }
 
@@ -84,100 +138,6 @@ class KeyplePlugin : Plugin<Project> {
         project.task("setNextAlphaVersion")
             .doFirst(this::setNextAlphaVersion)
             .finalizedBy("setVersion")
-
-        project.plugins.apply("maven-publish")
-        project.extensions.configure(PublishingExtension::class.java) { extension ->
-            extension.publications.create(
-                "mavenJava",
-                MavenPublication::class.java
-            ) { publication ->
-                publication.from(project.components.findByName("java"))
-                val pomDetails = File(project.projectDir, "PUBLISHERS.yml")
-                if (pomDetails.exists()) {
-                    YamlToPom(pomDetails.inputStream(), project)
-                        .use { publication.pom(it::inject) }
-                }
-            }
-            extension.repositories.maven { maven ->
-                maven.credentials {
-                    property("ossrhUsername")?.let(it::setUsername)
-                    property("ossrhPassword")?.let(it::setPassword)
-                }
-                if (project.version.toString().endsWith("-SNAPSHOT")) {
-                    maven.url =
-                        project.uri(versioning.snapshotsRepo)
-                } else {
-                    maven.url =
-                        project.uri(versioning.stagingRepo)
-                }
-            }
-            if (project.hasProperty("signing.keyId")) {
-                project.plugins.apply("signing")
-                project.extensions.configure(SigningExtension::class.java) { signing ->
-                    println("Signing artifacts.")
-                    signing.sign(extension.publications.findByName("mavenJava"))
-                }
-            }
-            if (project.hasProperty("signing.secretKeyRingFile")) {
-                val secretFile = property("signing.secretKeyRingFile")
-                if (secretFile?.contains("~") == true) {
-                    project.setProperty(
-                        "signing.secretKeyRingFile",
-                        secretFile.replace("~", System.getProperty("user.home"))
-                    )
-                }
-            }
-        }
-        project.tasks.findByName("javadoc")
-            ?.doFirst { javadoc ->
-                val stylesheet = File(project.buildDir, "keyple-stylesheet.css")
-                stylesheet.outputStream().use {
-                    javaClass.getResourceAsStream("javadoc/keyple-stylesheet.css")?.copyTo(it)
-                }
-                val javadocLogo = property("javadoc.logo")
-                    ?: "<a target=\"_parent\" href=\"https://keyple.org/\"><img src=\"https://keyple.org/docs/api-reference/java-api/keyple-java-core/1.0.0/images/keyple.png\" height=\"20px\" style=\"background-color: white; padding: 3px; margin: 0 10px -7px 3px;\"/></a>"
-                val javadocCopyright = property("javadoc.copyright")
-                    ?: "Copyright &copy; Eclipse Foundation, Inc. All Rights Reserved."
-                (javadoc as Javadoc).options {
-                    it.overview = "src/main/javadoc/overview.html"
-                    it.windowTitle = project.title + " - " + project.version
-                    it.header(
-                        javadocLogo +
-                                "<span style=\"line-height: 30px\"> " + project.title + " - " + project.version + "</span>"
-                    )
-                        .docTitle(project.title + " - " + project.version)
-                        .use(true)
-                        .stylesheetFile(stylesheet)
-                        .footer(javadocCopyright)
-                        .apply {
-                            if ((System.getProperty("java.version")
-                                    ?.split('.', limit = 2)
-                                    ?.get(0)?.toInt() ?: 0) >= 11
-                            ) {
-                                addBooleanOption("-no-module-directories", true)
-                            }
-                        }
-                }
-            }
-        project.tasks.findByName("jar")
-            ?.doFirst { jar ->
-                copy(
-                    File(project.projectDir, "LICENSE"),
-                    File(project.buildDir, "/resources/main/META-INF/")
-                )
-                copy(
-                    File(project.projectDir, "NOTICE.md"),
-                    File(project.buildDir, "/resources/main/META-INF/")
-                )
-                (jar as Jar).manifest { manifest ->
-                    manifest.attributes(
-                        mapOf(
-                            "Implementation-Title" to project.title,
-                            "Implementation-Version" to project.version
-                        )
-                    )
-                }
-            }
     }
 
     private fun copy(source: File, target: File) {
@@ -242,4 +202,44 @@ class KeyplePlugin : Plugin<Project> {
         task.project.version = nextVersion
     }
 
+    fun configurePublishing(project: Project): Action<PublishingExtension> {
+        return Action { extension ->
+            extension.publications.create(
+                "mavenJava",
+                MavenPublication::class.java
+            ) { publication ->
+                publication.from(project.components.findByName("java"))
+                val pomDetails = File(project.projectDir, "PUBLISHERS.yml")
+                if (pomDetails.exists()) {
+                    YamlToPom(pomDetails.inputStream(), project)
+                        .use { publication.pom(it::inject) }
+                }
+            }
+            extension.repositories.maven { maven ->
+                maven.credentials {
+                    project.prop("ossrhUsername")?.let(it::setUsername)
+                    project.prop("ossrhPassword")?.let(it::setPassword)
+                }
+                maven.url = project.uri(
+                    if (versioning.isRelease) versioning.stagingRepo else versioning.snapshotsRepo
+                )
+            }
+            if (project.hasProperty("signing.keyId")) {
+                project.plugins.apply("signing")
+                project.extensions.configure(SigningExtension::class.java) { signing ->
+                    println("Signing artifacts.")
+                    signing.sign(extension.publications.findByName("mavenJava"))
+                }
+            }
+            if (project.hasProperty("signing.secretKeyRingFile")) {
+                val secretFile = project.prop("signing.secretKeyRingFile")
+                if (secretFile?.contains("~") == true) {
+                    project.setProperty(
+                        "signing.secretKeyRingFile",
+                        secretFile.replace("~", System.getProperty("user.home"))
+                    )
+                }
+            }
+        }
+    }
 }
