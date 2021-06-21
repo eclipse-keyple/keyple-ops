@@ -8,7 +8,6 @@ import java.net.URL
 class KeypleVersioning {
 
     var repoServer = "https://oss.sonatype.org"
-    var isRelease = false
     var isAlreadyReleased = false
     val snapshotsRepo get() = "${repoServer}/content/repositories/snapshots/"
     val releasesRepo get() = "${repoServer}/content/repositories/releases/"

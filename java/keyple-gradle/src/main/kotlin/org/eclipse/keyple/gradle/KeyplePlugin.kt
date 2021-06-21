@@ -115,18 +115,19 @@ class KeyplePlugin : Plugin<Project> {
                 group = "publishing"
                 description =
                     "Releases all Maven publications produced by this project to Maven Central."
-                versioning.isRelease = true
                 outputs.upToDateWhen { versioning.isAlreadyReleased }
-
-                project.version = project.version.toString().removeSuffix("-SNAPSHOT")
-                project.repositories
-                    .removeIf {
-                        it is MavenArtifactRepository
-                                && it.url.rawPath.contains("snapshot")
-                    }
-                if (!versioning.isAlreadyReleased) {
-                    dependsOn("publish")
-                }
+                doFirst {
+                    project.version = project.version.toString().removeSuffix("-SNAPSHOT")
+                    project.repositories
+                        .removeIf {
+                            it is MavenArtifactRepository
+                                    && it.url.rawPath.contains("snapshot")
+                        }
+                    project.extensions.getByType(PublishingExtension::class.java)
+                        .repositories.first { it.name == "keypleRepo" }
+                        ?.let { it as MavenArtifactRepository }
+                        ?.apply { url = project.uri(versioning.stagingRepo) }
+                }.finalizedBy("publish")
             }
 
         project.task("setVersion")
@@ -149,7 +150,6 @@ class KeyplePlugin : Plugin<Project> {
             .outputStream()
             .use { source.inputStream().copyTo(it) }
     }
-
 
     /**
      * Sets version inside the gradle.properties file
@@ -216,13 +216,12 @@ class KeyplePlugin : Plugin<Project> {
                 }
             }
             extension.repositories.maven { maven ->
+                maven.name = "keypleRepo"
                 maven.credentials {
                     project.prop("ossrhUsername")?.let(it::setUsername)
                     project.prop("ossrhPassword")?.let(it::setPassword)
                 }
-                maven.url = project.uri(
-                    if (versioning.isRelease) versioning.stagingRepo else versioning.snapshotsRepo
-                )
+                maven.url = project.uri(versioning.snapshotsRepo)
             }
             if (project.hasProperty("signing.keyId")) {
                 project.plugins.apply("signing")
