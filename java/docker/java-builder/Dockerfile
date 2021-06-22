@@ -94,9 +94,7 @@ RUN umask g+w \
  && ln -sf /home/jenkins/agent/gradle.properties /home/jenkins/.gradle/gradle.properties \
  && rm -rf /home/jenkins/agent
 
-#
 # Pre-Download Gradle wrappers
-#
 RUN umask g+w \
  && mkdir gradle-wrapper \
  && cd gradle-wrapper \
@@ -108,9 +106,7 @@ RUN umask g+w \
  && cd /var/build \
  && rm -rf "/var/build/gradle-wrapper" "${GRADLE_USER_HOME}/daemon"
 
-#
 # Pre-Download dependencies
-#
 RUN umask g+w \
  && git clone "https://github.com/eclipse/keyple-service-java-lib.git" \
  && cd "keyple-service-java-lib" \
@@ -120,12 +116,17 @@ RUN umask g+w \
  && export keypleVersion=$(grep version java/component/keyple-core/gradle.properties | cut -d= -f2 | tr -d "[:space:]") \
  && echo "Working with keyple-service-java-lib $keypleVersion" \
  && cd /var/build \
- && rm -rf "/var/build/keyple-service-java-lib" "${GRADLE_USER_HOME}/daemon" "${GRADLE_USER_HOME}/.gradle/caches"/jars*/*/*keyple*
+ && rm -rf "keyple-service-java-lib" "${GRADLE_USER_HOME}/daemon" "${GRADLE_USER_HOME}/.gradle/caches"/jars*/*/*keyple*
 
-#  && cd android/ \
-#  && ./gradlew :keyple-plugin:keyple-plugin-android-nfc:uploadArchives \
-#  && ./gradlew :keyple-plugin:keyple-plugin-android-omapi:uploadArchives \
-#  && ./gradlew --stop \
+RUN umask g+w \
+ && git clone "https://github.com/eclipse/keyple-plugin-android-nfc-java-lib.git" \
+ && cd "keyple-plugin-android-nfc-java-lib" \
+ && set -x \
+ && ./gradlew clean build --info \
+ && ./gradlew --stop \
+ && cd /var/build \
+ && rm -rf "keyple-plugin-android-nfc-java-lib" "${GRADLE_USER_HOME}/daemon" "${GRADLE_USER_HOME}/.gradle/caches"/jars*/*/*keyple*
+
 ENTRYPOINT [ "/usr/local/bin/uid_entrypoint" ]
 
 LABEL version 1
