@@ -56,6 +56,10 @@ RUN umask g+w \
 RUN echo -n "Successfully installed " \
  && sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --list | sed -n '1,/Available/p' | head -n -2
 
+# GIT installation
+RUN apt-get install git-lfs \
+ && git lfs install
+
 # Workspace creation
 RUN umask g+w \
  && mkdir -p "/var/build"
@@ -108,16 +112,15 @@ RUN umask g+w \
 # Pre-Download dependencies
 #
 RUN umask g+w \
- && git clone "https://github.com/eclipse/keyple-java.git" \
- && cd "keyple-java" \
- && git checkout develop \
+ && git clone "https://github.com/eclipse/keyple-service-java-lib.git" \
+ && cd "keyple-service-java-lib" \
  && set -x \
- && ./gradlew installAll --info \
+ && ./gradlew clean build --info \
  && ./gradlew --stop \
  && export keypleVersion=$(grep version java/component/keyple-core/gradle.properties | cut -d= -f2 | tr -d "[:space:]") \
- && echo "Working with keyple-java $keypleVersion" \
+ && echo "Working with keyple-service-java-lib $keypleVersion" \
  && cd /var/build \
- && rm -rf "/var/build/keyple-java" "${GRADLE_USER_HOME}/daemon"
+ && rm -rf "/var/build/keyple-service-java-lib" "${GRADLE_USER_HOME}/daemon" "${GRADLE_USER_HOME}/.gradle/caches"/jars*/*/*keyple*
 
 #  && cd android/ \
 #  && ./gradlew :keyple-plugin:keyple-plugin-android-nfc:uploadArchives \
