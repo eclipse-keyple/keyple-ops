@@ -57,8 +57,7 @@ RUN echo -n "Successfully installed " \
  && sdkmanager --sdk_root=${ANDROID_SDK_ROOT} --list | sed -n '1,/Available/p' | head -n -2
 
 # GIT installation
-RUN apt-get install git-lfs \
- && git lfs install
+RUN apt-get install git-lfs
 
 # Workspace creation
 RUN umask g+w \
@@ -85,6 +84,7 @@ ENV HOME="/home/${USER}"
 ENV GRADLE_USER_HOME="/home/${USER}/.gradle"
 
 RUN umask g+w \
+ && git lfs install \
  && chmod g+w ~ \
  && cd "/home/${USER}" \
  && mkdir -p ".gradle" ".android" \
@@ -116,7 +116,8 @@ RUN umask g+w \
  && export keypleVersion=$(grep version java/component/keyple-core/gradle.properties | cut -d= -f2 | tr -d "[:space:]") \
  && echo "Working with keyple-service-java-lib $keypleVersion" \
  && cd /var/build \
- && rm -rf "keyple-service-java-lib" "${GRADLE_USER_HOME}/daemon" "${GRADLE_USER_HOME}/.gradle/caches"/jars*/*/*keyple*
+ && rm -rf "keyple-service-java-lib" "${GRADLE_USER_HOME}/daemon" "${GRADLE_USER_HOME}/caches"/jars*/*/*keyple* "${GRADLE_USER_HOME}/caches"/modules-2/files-2.1/org.eclipse.keyple \
+ && find "${GRADLE_USER_HOME}/caches" -type f -executable -exec chmod g+x {} +
 
 RUN umask g+w \
  && git clone "https://github.com/eclipse/keyple-plugin-android-nfc-java-lib.git" \
@@ -125,8 +126,9 @@ RUN umask g+w \
  && ./gradlew clean build --info \
  && ./gradlew --stop \
  && cd /var/build \
- && rm -rf "keyple-plugin-android-nfc-java-lib" "${GRADLE_USER_HOME}/daemon" "${GRADLE_USER_HOME}/.gradle/caches"/jars*/*/*keyple*
+ && rm -rf "keyple-plugin-android-nfc-java-lib" "${GRADLE_USER_HOME}/daemon" "${GRADLE_USER_HOME}/caches"/jars*/*/*keyple* "${GRADLE_USER_HOME}/caches"/modules-2/files-2.1/org.eclipse.keyple \
+ && find "${GRADLE_USER_HOME}/caches" -type f -executable -exec chmod g+x {} +
 
 ENTRYPOINT [ "/usr/local/bin/uid_entrypoint" ]
 
-LABEL version 1
+LABEL version 2
