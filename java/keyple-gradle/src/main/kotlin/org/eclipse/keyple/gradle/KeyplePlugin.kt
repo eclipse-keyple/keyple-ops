@@ -12,8 +12,6 @@ import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.signing.SigningExtension
 import java.io.File
-import java.net.HttpURLConnection
-import java.net.URL
 
 val Project.title: String
     get() = property("title") as String? ?: name
@@ -33,10 +31,15 @@ class KeyplePlugin : Plugin<Project> {
 
     val versioning = KeypleVersioning()
 
+    companion object {
+        init {
+            println("Using Keyple Gradle " + javaClass.`package`.implementationVersion)
+        }
+    }
+
     override fun apply(project: Project) {
         versioning.init(project)
         versioning.snapshotProject(project)
-        println("Using Keyple Gradle " + javaClass.`package`.implementationVersion)
         setupTasks(project)
 
         val licenseHeaderParent = File(project.projectDir, "gradle/")
@@ -53,10 +56,6 @@ class KeyplePlugin : Plugin<Project> {
             .mustRunAfter("release")
 
         project.plugins.apply("maven-publish")
-        project.extensions.configure(
-            PublishingExtension::class.java,
-            configurePublishing(project)
-        )
         project.tasks.findByName("javadoc")?.doFirst { javadoc ->
             val stylesheet = File(project.buildDir, "keyple-stylesheet.css")
             stylesheet.outputStream().use {
@@ -102,6 +101,12 @@ class KeyplePlugin : Plugin<Project> {
                 )
             }
         }
+        project.afterEvaluate {
+            project.extensions.configure(
+                PublishingExtension::class.java,
+                configurePublishing(project)
+            )
+        }
     }
 
     private fun setupTasks(project: Project) {
@@ -131,7 +136,7 @@ class KeyplePlugin : Plugin<Project> {
                         ?.let { it as MavenArtifactRepository }
                         ?.apply { url = project.uri(versioning.stagingRepo) }
                 }
-                .finalizedBy("publish")
+                    .finalizedBy("publish")
             }
 
         project.task("setVersion")
@@ -208,17 +213,38 @@ class KeyplePlugin : Plugin<Project> {
 
     fun configurePublishing(project: Project): Action<PublishingExtension> {
         return Action { extension ->
-            extension.publications.create(
-                "mavenJava",
-                MavenPublication::class.java
-            ) { publication ->
-                publication.from(project.components.findByName("java"))
-                val pomDetails = File(project.projectDir, "PUBLISHERS.yml")
-                if (pomDetails.exists()) {
-                    YamlToPom(pomDetails.inputStream(), project)
-                        .use { publication.pom(it::inject) }
+            project.components.findByName("java")
+                ?.let { java ->
+                    extension.publications.create(
+                        "mavenJava",
+                        MavenPublication::class.java
+                    ) { publication ->
+                        publication.from(java)
+                        project.prop("archivesBaseName")
+                            ?.let { publication.artifactId = it }
+                        val pomDetails = File(project.projectDir, "PUBLISHERS.yml")
+                        if (pomDetails.exists()) {
+                            YamlToPom(pomDetails.inputStream(), project)
+                                .use { publication.pom(it::inject) }
+                        }
+                    }
                 }
-            }
+            project.components.findByName("release")
+                ?.let { release ->
+                    extension.publications.create(
+                        "mavenRelease",
+                        MavenPublication::class.java
+                    ) { publication ->
+                        publication.from(release)
+                        project.prop("archivesBaseName")
+                            ?.let { publication.artifactId = it }
+                        val pomDetails = File(project.projectDir, "PUBLISHERS.yml")
+                        if (pomDetails.exists()) {
+                            YamlToPom(pomDetails.inputStream(), project)
+                                .use { publication.pom(it::inject) }
+                        }
+                    }
+                }
             extension.repositories.maven { maven ->
                 maven.name = "keypleRepo"
                 maven.credentials {
@@ -230,8 +256,16 @@ class KeyplePlugin : Plugin<Project> {
             if (project.hasProperty("signing.keyId")) {
                 project.plugins.apply("signing")
                 project.extensions.configure(SigningExtension::class.java) { signing ->
-                    println("Signing artifacts.")
-                    signing.sign(extension.publications.findByName("mavenJava"))
+                    extension.publications.findByName("mavenJava")
+                        ?.let {
+                            project.logger.info("Signing Java artifacts.")
+                            signing.sign(it)
+                        }
+                    extension.publications.findByName("mavenRelease")
+                        ?.let {
+                            project.logger.info("Signing Android artifacts.")
+                            signing.sign(it)
+                        }
                 }
             }
             if (project.hasProperty("signing.secretKeyRingFile")) {

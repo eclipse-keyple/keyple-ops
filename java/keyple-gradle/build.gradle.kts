@@ -9,6 +9,7 @@ plugins {
     jacoco
     id("org.sonarqube") version "3.0"
     `maven-publish`
+    `java-gradle-plugin`
 }
 
 buildscript {
@@ -43,6 +44,15 @@ repositories {
     mavenCentral()
 }
 
+gradlePlugin {
+    plugins {
+        create("keyple-gradle") {
+            id = "org.eclipse.keyple"
+            implementationClass = "org.eclipse.keyple.gradle.KeyplePlugin"
+        }
+    }
+}
+
 val compileKotlin: KotlinCompile by tasks
 val compileTestKotlin: KotlinCompile by tasks
 val releaseRepo: String by project
@@ -69,6 +79,7 @@ fun canBeUploaded(project: Project): Boolean {
         println("Artifacts already exists on repository, no need to upload it again.")
     } else {
         println("Artifacts can safely be uploaded.")
+        println("No artifact at ${repositoryUrl}")
     }
     return canBeUploaded
 }
@@ -195,7 +206,6 @@ publishing {
 }
 
 if (project.hasProperty("signing.keyId")) {
-    println("Signing artifacts.")
     signing {
         sign(publishing.publications["mavenJava"])
     }
