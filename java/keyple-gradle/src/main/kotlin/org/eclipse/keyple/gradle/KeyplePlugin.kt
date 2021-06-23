@@ -49,6 +49,9 @@ class KeyplePlugin : Plugin<Project> {
             javaClass.getResourceAsStream("license_header.txt")?.copyTo(it)
         }
 
+        project.tasks.getByName("build")
+            .mustRunAfter("release")
+
         project.plugins.apply("maven-publish")
         project.extensions.configure(
             PublishingExtension::class.java,
@@ -127,7 +130,8 @@ class KeyplePlugin : Plugin<Project> {
                         .repositories.first { it.name == "keypleRepo" }
                         ?.let { it as MavenArtifactRepository }
                         ?.apply { url = project.uri(versioning.stagingRepo) }
-                }.finalizedBy("publish")
+                }
+                .finalizedBy("publish")
             }
 
         project.task("setVersion")
