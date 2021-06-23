@@ -9,7 +9,7 @@ plugins {
     jacoco
     id("org.sonarqube") version "3.0"
     `maven-publish`
-    `java-gradle-plugin`
+//    `java-gradle-plugin`
 }
 
 buildscript {
@@ -44,14 +44,14 @@ repositories {
     mavenCentral()
 }
 
-gradlePlugin {
-    plugins {
-        create("keyple-gradle") {
-            id = "org.eclipse.keyple"
-            implementationClass = "org.eclipse.keyple.gradle.KeyplePlugin"
-        }
-    }
-}
+//gradlePlugin {
+//    plugins {
+//        create("keyple-gradle") {
+//            id = "org.eclipse.keyple"
+//            implementationClass = "org.eclipse.keyple.gradle.KeyplePlugin"
+//        }
+//    }
+//}
 
 val compileKotlin: KotlinCompile by tasks
 val compileTestKotlin: KotlinCompile by tasks
