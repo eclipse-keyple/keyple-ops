@@ -62,6 +62,8 @@ internal class KeyplePluginTest {
 
         val task = mock(Task::class.java)
         doReturn(task).`when`(tasks).getByName(anyString())
+
+        doReturn(File("build")).`when`(project).rootDir
     }
 
     @Test
