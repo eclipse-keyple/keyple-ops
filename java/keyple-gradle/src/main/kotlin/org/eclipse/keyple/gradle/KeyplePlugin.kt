@@ -31,26 +31,15 @@ class KeyplePlugin : Plugin<Project> {
 
     val versioning = KeypleVersioning()
 
-    companion object {
-        init {
-            println("Using Keyple Gradle " + javaClass.`package`.implementationVersion)
-        }
+    init {
+        println("Using Keyple Gradle " + javaClass.`package`.implementationVersion)
     }
 
     override fun apply(project: Project) {
         versioning.init(project)
+        project.logger.info("Using Keyple Gradle " + javaClass.`package`.implementationVersion)
         versioning.snapshotProject(project)
         setupTasks(project)
-
-        val licenseHeaderParent = File(project.projectDir, "gradle/")
-        licenseHeaderParent.mkdirs()
-        val licenseHeader = File(licenseHeaderParent, "license_header.txt")
-        if (!licenseHeader.isFile) {
-            licenseHeader.createNewFile()
-        }
-        licenseHeader.outputStream().use {
-            javaClass.getResourceAsStream("license_header.txt")?.copyTo(it)
-        }
 
         project.tasks.getByName("build")
             .mustRunAfter("release")
@@ -101,6 +90,35 @@ class KeyplePlugin : Plugin<Project> {
                 )
             }
         }
+
+        project.task("spotlessLicence")
+            .apply {
+                group = "verification"
+                description =
+                    "Add licence for Spotless Check"
+            }
+            .doFirst {
+                val licenseHeaderParent = project.buildDir
+                licenseHeaderParent.mkdirs()
+                val licenseHeader = File(licenseHeaderParent, "license_header.txt")
+                if (!licenseHeader.isFile) {
+                    project.logger.info("Creating licenseHeader in: $licenseHeader")
+                    licenseHeader.createNewFile()
+                }
+                licenseHeader.outputStream().use {
+                    javaClass.getResourceAsStream("license_header.txt")?.copyTo(it)
+                }
+            }
+        project.tasks.findByName("spotlessApply")
+            ?.dependsOn("spotlessLicence")
+            ?.mustRunAfter("spotlessLicence")
+        project.tasks.findByName("spotlessCheck")
+            ?.dependsOn("spotlessLicence")
+            ?.mustRunAfter("spotlessLicence")
+        project.tasks.findByName("spotlessDiagnose")
+            ?.dependsOn("spotlessLicence")
+            ?.mustRunAfter("spotlessLicence")
+
         project.afterEvaluate {
             project.extensions.configure(
                 PublishingExtension::class.java,
@@ -131,8 +149,9 @@ class KeyplePlugin : Plugin<Project> {
                             it is MavenArtifactRepository
                                     && it.url.rawPath.contains("snapshot")
                         }
-                    project.extensions.getByType(PublishingExtension::class.java)
-                        .repositories.first { it.name == "keypleRepo" }
+                    project.extensions.findByType(PublishingExtension::class.java)
+                        ?.repositories
+                        ?.first { it.name == "keypleRepo" }
                         ?.let { it as MavenArtifactRepository }
                         ?.apply { url = project.uri(versioning.stagingRepo) }
                 }
