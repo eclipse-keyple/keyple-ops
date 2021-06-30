@@ -2,7 +2,8 @@
 set -e
 
 mkdir ./repository
-cp ./build/libs/${PROJECT_NAME}*.jar ./repository
+find . -path "*build/libs/*.jar" -exec cp {} ./repository \;
+find . -path "*build/outputs/aar/*.aar" -exec cp {} ./repository \;
 echo -n "Packaging: "
 ls -R ./repository
 

@@ -23,6 +23,11 @@ buildscript {
     }
 }
 
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
 dependencies {
     implementation(gradleApi())
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -37,11 +42,6 @@ dependencies {
     testImplementation("com.sun.istack:istack-commons-runtime:3.0.11")
     testImplementation("org.assertj:assertj-core:3.15.0")
     testImplementation("org.mockito:mockito-core:3.5.10")
-}
-
-repositories {
-    mavenLocal()
-    mavenCentral()
 }
 
 //gradlePlugin {
