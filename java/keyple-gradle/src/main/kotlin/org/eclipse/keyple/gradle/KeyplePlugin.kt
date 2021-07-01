@@ -252,11 +252,11 @@ class KeyplePlugin : Plugin<Project> {
                                     it.from(main)
                                 }
                             }
-                    val releaseJavaDocJar =
-                        project.tasks.findByName("dokkaJavadoc")?.let { dokkaJavadoc ->
-                            project.tasks.create("releaseJavaDocJar", Jar::class.java) {
+                    val releaseDocJar =
+                        project.tasks.findByName("dokkaHtml")?.let { dokkaJavadoc ->
+                            project.tasks.create("releaseDocJar", Jar::class.java) {
                                 it.dependsOn.add(dokkaJavadoc)
-                                it.archiveClassifier.set("javadoc")
+                                it.archiveClassifier.set("kdoc")
                                 it.from(dokkaJavadoc)
                             }
                         }
@@ -267,7 +267,7 @@ class KeyplePlugin : Plugin<Project> {
                     ) { publication ->
                         publication.from(release)
                         releaseSourceJar?.let { publication.artifact(it) }
-                        releaseJavaDocJar?.let { publication.artifact(it) }
+                        releaseDocJar?.let { publication.artifact(it) }
                         project.prop("archivesBaseName")
                             ?.let { publication.artifactId = it }
                         val pomDetails = File(project.rootDir, "PUBLISHERS.yml")
