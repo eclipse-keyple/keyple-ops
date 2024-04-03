@@ -171,9 +171,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection.set("scm:git:git://github.com/eclipse/keyple-ops.git")
-                    developerConnection.set("scm:git:https://github.com/eclipse/keyple-ops.git")
-                    url.set("http://github.com/eclipse/keyple-ops/tree/master")
+                    connection.set("scm:git:git://github.com/eclipse-keyple/keyple-ops.git")
+                    developerConnection.set("scm:git:https://github.com/eclipse-keyple/keyple-ops.git")
+                    url.set("http://github.com/eclipse-keyple/keyple-ops/tree/master")
                 }
             }
         }
