@@ -4,12 +4,11 @@ import java.net.HttpURLConnection
 import java.io.IOException
 
 plugins {
-    kotlin("jvm") version "1.3.61"
+    kotlin("jvm") version "1.7.10" // Update Kotlin version to match Gradle's
     signing
     jacoco
     id("org.sonarqube") version "3.0"
     `maven-publish`
-//    `java-gradle-plugin`
 }
 
 buildscript {
@@ -18,7 +17,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.10") // Update Kotlin Gradle plugin version
         classpath("com.sun.istack:istack-commons-runtime:3.0.11")
     }
 }
@@ -30,28 +29,17 @@ repositories {
 
 dependencies {
     implementation(gradleApi())
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.3.61")
-    implementation("com.fasterxml.jackson.core:jackson-core:2.12.1")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.1")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.1")
-    implementation("javax.xml.bind:jaxb-api:2.3.1")
-    implementation("com.sun.xml.bind:jaxb-core:3.0.0")
-    implementation("com.sun.xml.bind:jaxb-impl:3.0.0")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.6.0")
-    testImplementation("com.sun.istack:istack-commons-runtime:3.0.11")
-    testImplementation("org.assertj:assertj-core:3.15.0")
-    testImplementation("org.mockito:mockito-core:3.5.10")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.7.10")
+    implementation("com.fasterxml.jackson.core:jackson-core:2.13.3")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.3")
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:3.0.1")
+    implementation("org.glassfish.jaxb:jaxb-runtime:3.0.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+    testImplementation("com.sun.istack:istack-commons-runtime:3.0.12")
+    testImplementation("org.assertj:assertj-core:3.22.0")
+    testImplementation("org.mockito:mockito-core:4.3.1")
 }
-
-//gradlePlugin {
-//    plugins {
-//        create("keyple-gradle") {
-//            id = "org.eclipse.keyple"
-//            implementationClass = "org.eclipse.keyple.gradle.KeyplePlugin"
-//        }
-//    }
-//}
 
 val compileKotlin: KotlinCompile by tasks
 val compileTestKotlin: KotlinCompile by tasks

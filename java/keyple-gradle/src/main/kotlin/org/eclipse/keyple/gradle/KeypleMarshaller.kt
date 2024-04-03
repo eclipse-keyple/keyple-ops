@@ -1,11 +1,11 @@
 package org.eclipse.keyple.gradle;
 
+import jakarta.xml.bind.JAXB
+import jakarta.xml.bind.JAXBContext
 import org.xml.sax.InputSource
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
-import javax.xml.bind.JAXB
-import javax.xml.bind.JAXBContext
 import javax.xml.parsers.SAXParserFactory
 import javax.xml.transform.sax.SAXSource
 import javax.xml.transform.stream.StreamResult

@@ -1,6 +1,9 @@
 # eclipsekeyple/java-builder:2.0
-FROM openjdk:11-jdk
-LABEL maintainer Brice Ruppen <brice.ruppen@armotic.fr>, Olivier Delcroix <odelcroi@gmail.com>
+FROM eclipse-temurin:17-jdk-focal
+
+RUN apt-get update && apt-get install -y unzip git-lfs
+
+LABEL maintainer Jean-Pierre Fortune <jean-pierre.fortune@ialto.com>, Andrei Cristea <andrei.cristea019@gmail.com>
 
 # PGP installation
 RUN apt-get update \
@@ -12,7 +15,7 @@ RUN apt-get update \
 COPY import_gpg /usr/local/bin/import_gpg
 
 # Gradle installation
-ARG GRADLE_VERSION="6.8.3"
+ARG GRADLE_VERSION="7.6.4"
 ENV GRADLE_HOME="/opt/gradle/gradle-${GRADLE_VERSION}"
 ENV JAVA_OPTS="-Xmx1800m -Dfile.encoding=UTF-8 -XX:+HeapDumpOnOutOfMemoryError -XX:+IgnoreUnrecognizedVMOptions"
 RUN mkdir -p "/opt/gradle" \
@@ -93,41 +96,6 @@ RUN umask g+w \
  && touch /home/jenkins/agent/gradle.properties \
  && ln -sf /home/jenkins/agent/gradle.properties /home/jenkins/.gradle/gradle.properties \
  && rm -rf /home/jenkins/agent
-
-# Pre-Download Gradle wrappers
-RUN umask g+w \
- && mkdir gradle-wrapper \
- && cd gradle-wrapper \
- && gradle wrapper --gradle-version 5.6.4 \
- && ./gradlew -version \
- && gradle wrapper --gradle-version 6.8.3 \
- && ./gradlew -version \
- && gradle --stop \
- && cd /var/build \
- && rm -rf "/var/build/gradle-wrapper" "${GRADLE_USER_HOME}/daemon"
-
-# Pre-Download dependencies
-RUN umask g+w \
- && git clone "https://github.com/eclipse/keyple-service-java-lib.git" \
- && cd "keyple-service-java-lib" \
- && set -x \
- && ./gradlew clean build --info \
- && ./gradlew --stop \
- && export keypleVersion=$(grep version java/component/keyple-core/gradle.properties | cut -d= -f2 | tr -d "[:space:]") \
- && echo "Working with keyple-service-java-lib $keypleVersion" \
- && cd /var/build \
- && rm -rf "keyple-service-java-lib" "${GRADLE_USER_HOME}/daemon" "${GRADLE_USER_HOME}/caches"/jars*/*/*keyple* "${GRADLE_USER_HOME}/caches"/modules-2/files-2.1/org.eclipse.keyple \
- && find "${GRADLE_USER_HOME}/caches" -type f -executable -exec chmod g+x {} +
-
-RUN umask g+w \
- && git clone "https://github.com/eclipse/keyple-plugin-android-nfc-java-lib.git" \
- && cd "keyple-plugin-android-nfc-java-lib" \
- && set -x \
- && ./gradlew clean build --info \
- && ./gradlew --stop \
- && cd /var/build \
- && rm -rf "keyple-plugin-android-nfc-java-lib" "${GRADLE_USER_HOME}/daemon" "${GRADLE_USER_HOME}/caches"/jars*/*/*keyple* "${GRADLE_USER_HOME}/caches"/modules-2/files-2.1/org.eclipse.keyple \
- && find "${GRADLE_USER_HOME}/caches" -type f -executable -exec chmod g+x {} +
 
 ENTRYPOINT [ "/usr/local/bin/uid_entrypoint" ]
 

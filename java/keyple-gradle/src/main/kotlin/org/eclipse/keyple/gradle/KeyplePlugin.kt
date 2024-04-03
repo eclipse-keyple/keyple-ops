@@ -49,10 +49,6 @@ class KeyplePlugin : Plugin<Project> {
         project.plugins.apply("maven-publish")
         project.tasks.findByName("javadoc")?.doFirst { javadoc ->
             javadoc as Javadoc
-            val stylesheet = File(project.buildDir, "keyple-stylesheet.css")
-            stylesheet.outputStream().use {
-                javaClass.getResourceAsStream("javadoc/keyple-stylesheet.css")?.copyTo(it)
-            }
             val javadocLogo = project.prop("javadoc.logo")
                 ?: "<a target=\"_parent\" href=\"https://keyple.org/\"><img src=\"https://keyple.org/docs/api-reference/java-api/keyple-java-core/1.0.0/images/keyple.png\" height=\"20px\" style=\"background-color: white; padding: 3px; margin: 0 10px -7px 3px;\"/></a>"
             val javadocCopyright = project.prop("javadoc.copyright")
@@ -60,19 +56,10 @@ class KeyplePlugin : Plugin<Project> {
             javadoc.options {
                 it.overview = "src/main/javadoc/overview.html"
                 it.windowTitle = project.title + " - " + project.version
-                it.header("${javadocLogo}<span style=\"line-height: 30px\"> ${project.title} - ${project.version}</span>")
+                it.header("<div style=\"margin-top: 7px\">${javadocLogo} ${project.title} - ${project.version}</div>")
                     .docTitle(project.title + " - " + project.version)
                     .use(true)
-                    .stylesheetFile(stylesheet)
-                    .footer(javadocCopyright)
-                    .apply {
-                        if ((System.getProperty("java.version")
-                                ?.split('.', limit = 2)
-                                ?.get(0)?.toInt() ?: 0) >= 11
-                        ) {
-                            addBooleanOption("-no-module-directories", true)
-                        }
-                    }
+                    .bottom(javadocCopyright)
             }
         }
         project.tasks.findByName("jar")?.doFirst { jar ->
