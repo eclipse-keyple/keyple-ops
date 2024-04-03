@@ -69,7 +69,7 @@ Artifacts : keyple-java-core, keyple-java-calypso, keyple-java-plugin-stub, keyp
 
 ## Contributing
 
-1. [Fork](https://help.github.com/articles/fork-a-repo/) the [eclipse/keyple-ops](https://github.com/eclipse/keyple-ops) repository
+1. [Fork](https://help.github.com/articles/fork-a-repo/) the [eclipse-keyple/keyple-ops](https://github.com/eclipse-keyple/keyple-ops) repository
 2. Clone repository: `git clone https://github.com/[your_github_username]/keyple-ops.git`
 3. Create your feature branch: `git checkout -b my-new-feature`
 4. Make your changes
@@ -87,7 +87,7 @@ SPDX-License-Identifier: EPL-2.0
 
 ## Bugs and feature requests
 
-Have a bug or a feature request? Please search for existing and closed issues. If your problem or idea is not addressed yet, [please open a new issue](https://github.com/eclipse/keyple-ops/issues/new).
+Have a bug or a feature request? Please search for existing and closed issues. If your problem or idea is not addressed yet, [please open a new issue](https://github.com/eclipse-keyple/keyple-ops/issues/new).
 
 ## Trademarks
 
@@ -97,5 +97,5 @@ Have a bug or a feature request? Please search for existing and closed issues. I
 
 ## Copyright and license
 
-Copyright 2020 the [Eclipse Foundation, Inc.](https://www.eclipse.org) and the [Keyple OPS authors](https://github.com/eclipse/keyple-ops/graphs/contributors). 
-Code released under the [Eclipse Public License Version 2.0 (EPL-2.0)](https://github.com/eclipse/keyple-website/blob/src/LICENSE).
+Copyright 2020 the [Eclipse Foundation, Inc.](https://www.eclipse.org) and the [Keyple OPS authors](https://github.com/eclipse-keyple/keyple-ops/graphs/contributors). 
+Code released under the [Eclipse Public License Version 2.0 (EPL-2.0)](https://github.com/eclipse-keyple/keyple-website/blob/src/LICENSE).

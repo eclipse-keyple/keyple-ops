@@ -17,7 +17,7 @@ pipeline {
         stage('Keyple Java: Git checkout') {
             steps{
                 container('java-builder') {
-                    git url: 'https://github.com/eclipse/keyple-java.git',
+                    git url: 'https://github.com/eclipse-keyple/keyple-java.git',
                         credentialsId: 'github-bot',
                         branch: 'develop'
                 }
@@ -84,7 +84,7 @@ pipeline {
                                 git config --global user.name "${PROJECT_BOT_NAME}"
                                 git commit -m 'Release keyple-java ${keypleVersion}' --signoff
                                 git tag '${keypleVersion}'
-                                git push 'https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/eclipse/keyple-java.git' refs/tags/${keypleVersion}
+                                git push 'https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/eclipse-keyple/keyple-java.git' refs/tags/${keypleVersion}
                             else
                                 echo 'No change have been detected since last build, nothing to publish'
                                 exit 2

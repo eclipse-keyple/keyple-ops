@@ -17,7 +17,7 @@ This script takes 3 parameters:
 
 ### Example
 
-Let's say you want to move the [Android](https://github.com/eclipse/keyple-java/tree/master/android) part of the Keyple project out of the [keyple-java](https://github.com/eclipse/keyple-java) repository, so that is managed in its own dedicated repository. It is obviously very important to keep the complete git history linked to the files we are moving in the new repository.
+Let's say you want to move the [Android](https://github.com/eclipse-keyple/keyple-java/tree/master/android) part of the Keyple project out of the [keyple-java](https://github.com/eclipse-keyple/keyple-java) repository, so that is managed in its own dedicated repository. It is obviously very important to keep the complete git history linked to the files we are moving in the new repository.
 
 In order to do that:
 
@@ -39,7 +39,7 @@ This script takes at least 3 parameters:
 
 ### Example
 
-Let's say you have used the previous script to move the `android` and `java` folders out of the [keyple-java](https://github.com/eclipse/keyple-java) repository, and you now want to have a new "base" repo, containing only the base gradle stuff and the documentation. Again, it is important have *in fine* a clean git history, consistent with the remaining files.
+Let's say you have used the previous script to move the `android` and `java` folders out of the [keyple-java](https://github.com/eclipse-keyple/keyple-java) repository, and you now want to have a new "base" repo, containing only the base gradle stuff and the documentation. Again, it is important have *in fine* a clean git history, consistent with the remaining files.
 
 In order to do that:
 
@@ -49,7 +49,7 @@ In order to do that:
 
 ## Use Case
 
-Starting from the repository [keyple-java](https://github.com/eclipse/keyple-java), we want to reorganize the project and split it in several repositories. The goal would be to have a repo for each component. But we also want to have unique entry point for the project, via a "base" repository, gathering all the components as [git submodules](https://git-scm.com/docs/git-submodule). Of course, we want to keep a clean git history for everything.
+Starting from the repository [keyple-java](https://github.com/eclipse-keyple/keyple-java), we want to reorganize the project and split it in several repositories. The goal would be to have a repo for each component. But we also want to have unique entry point for the project, via a "base" repository, gathering all the components as [git submodules](https://git-scm.com/docs/git-submodule). Of course, we want to keep a clean git history for everything.
 
 In order not to break already existing setups based on the current keyple-java project (such as CI), the idea will be to have a resulting file tree similar to the current one.
 

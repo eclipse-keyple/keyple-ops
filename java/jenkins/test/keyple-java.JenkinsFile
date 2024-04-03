@@ -12,7 +12,7 @@ pipeline {
         stage('Prepare'){
             steps{
                 container('java-builder') {
-                    git url: 'https://github.com/eclipse/keyple-java.git',
+                    git url: 'https://github.com/eclipse-keyple/keyple-java.git',
                         branch: '${ghprbSourceBranch}'
                 }
             }

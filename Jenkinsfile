@@ -12,7 +12,7 @@ pipeline {
                 container('java-builder') {
                     script {
                         keypleGradleVersion = sh(script: 'grep "^version" java/keyple-gradle/gradle.properties | cut -d= -f2 | tr -d "[:space:]"', returnStdout: true).trim()
-                        deployKeypleGradle = env.GIT_URL == 'https://github.com/eclipse/keyple-ops.git' && env.GIT_BRANCH == "master" && env.CHANGE_ID == null
+                        deployKeypleGradle = env.GIT_URL == 'https://github.com/eclipse-keyple/keyple-ops.git' && env.GIT_BRANCH == "master" && env.CHANGE_ID == null
                     }
                 }
             }
