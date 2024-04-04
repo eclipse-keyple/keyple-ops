@@ -1,14 +1,12 @@
 # eclipsekeyple/java-builder:2.0
 FROM eclipse-temurin:17-jdk-focal
 
-RUN apt-get update && apt-get install -y unzip git-lfs
-
 LABEL maintainer Jean-Pierre Fortune <jean-pierre.fortune@ialto.com>, Andrei Cristea <andrei.cristea019@gmail.com>
 
 # PGP installation
 RUN apt-get update \
     && apt-get remove -y  gnupg \
-    && apt-get install -y gnupg1 tree \
+    && apt-get install -y unzip git-lfs gnupg1 tree \
     && apt-get clean \
     && echo -n "Successfully installed " \
     && gpg1 --version
