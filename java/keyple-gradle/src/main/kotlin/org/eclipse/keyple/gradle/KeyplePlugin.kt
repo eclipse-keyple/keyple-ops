@@ -227,14 +227,14 @@ class KeyplePlugin : Plugin<Project> {
                 }
             project.components.findByName("release")
                 ?.let { release ->
-                    val releaseSourceJar =
+                    val releaseSrcJar =
                         project.extensions.findByName("android")
                             ?.let { read<NamedDomainObjectContainer<Any>>(it, "sourceSets") }
                             ?.findByName("main")
                             ?.let { read<Any>(it, "java") }
                             ?.let { read<Set<File>>(it, "srcDirs") }
                             ?.let { main ->
-                                project.tasks.create("releaseSourcesJar", Jar::class.java) {
+                                project.tasks.create("releaseSrcJar", Jar::class.java) {
                                     it.archiveClassifier.set("sources")
                                     it.from(main)
                                 }
@@ -253,7 +253,7 @@ class KeyplePlugin : Plugin<Project> {
                         MavenPublication::class.java
                     ) { publication ->
                         publication.from(release)
-                        releaseSourceJar?.let { publication.artifact(it) }
+                        releaseSrcJar?.let { publication.artifact(it) }
                         releaseDocJar?.let { publication.artifact(it) }
                         project.prop("archivesBaseName")
                             ?.let { publication.artifactId = it }
