@@ -14,10 +14,7 @@ data class PomRoot(
     val properties: Map<String, String>?
 )
 
-data class PomOrganization(
-    val name: String?,
-    val url: String?
-)
+data class PomOrganization(val name: String?, val url: String?)
 
 data class PomLicense(
     val name: String?,
@@ -44,11 +41,6 @@ data class PomScm(
     val tag: String?
 )
 
-data class PomDistributionManagement(
-    val downloadUrl: String?
-)
+data class PomDistributionManagement(val downloadUrl: String?)
 
-data class PomManagement(
-    val system: String?,
-    val url: String?
-)
+data class PomManagement(val system: String?, val url: String?)

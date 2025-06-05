@@ -9,6 +9,7 @@ plugins {
     jacoco
     id("org.sonarqube") version "3.0"
     `maven-publish`
+    id("com.diffplug.spotless") version "6.25.0"
 }
 
 buildscript {
@@ -135,6 +136,12 @@ tasks {
             property("sonar.organization", "eclipse")
             property("sonar.host.url", "https://sonarcloud.io")
             property("sonar.login", System.getenv("SONAR_LOGIN"))
+        }
+    }
+    spotless {
+        kotlin {
+            target("**/*.kt")
+            ktfmt()
         }
     }
 }
