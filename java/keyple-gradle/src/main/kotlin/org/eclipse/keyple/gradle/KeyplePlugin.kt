@@ -269,8 +269,8 @@ class KeyplePlugin : Plugin<Project> {
       extension.repositories.maven { maven ->
         maven.name = "keypleRepo"
         maven.credentials {
-          project.prop("ossrhUsername")?.let(it::setUsername)
-          project.prop("ossrhPassword")?.let(it::setPassword)
+          project.prop("centralUsername")?.let(it::setUsername)
+          project.prop("centralPassword")?.let(it::setPassword)
         }
         maven.url = project.uri(versioning.snapshotsRepo)
       }
