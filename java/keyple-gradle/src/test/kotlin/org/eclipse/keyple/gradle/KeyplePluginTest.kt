@@ -77,18 +77,6 @@ internal class KeyplePluginTest {
 
         verify(tasks["setVersion"]!!)
             .doFirst(any<Action<Task>>())
-
-        verify(project)
-            .task("getLastAlphaVersion")
-
-        verify(tasks["getLastAlphaVersion"]!!)
-            .doFirst(any<Action<Task>>())
-
-        verify(project)
-            .task("setNextAlphaVersion")
-
-        verify(tasks["setNextAlphaVersion"]!!)
-            .doFirst(any<Action<Task>>())
     }
 
     @Test
@@ -142,28 +130,5 @@ internal class KeyplePluginTest {
                 "version = 2.0.0",
                 "second = 2"
             )
-    }
-
-    @Test
-    fun getLastAlphaVersion() {
-        val plugin = KeyplePlugin()
-        plugin.apply(project)
-        val task = tasks["getLastAlphaVersion"]!!
-        doReturn("0.9.0")
-            .`when`(project).version
-
-        plugin.getLastAlphaVersion(task)
-    }
-
-    @Test
-    fun setNextAlphaVersion() {
-        val plugin = KeyplePlugin()
-        plugin.apply(project)
-        doReturn("0.9.0")
-            .`when`(project).version
-
-        plugin.setNextAlphaVersion(tasks["setNextAlphaVersion"]!!)
-
-        verify(project).version = "0.9.0-alpha-3"
     }
 }

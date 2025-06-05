@@ -124,13 +124,6 @@ class KeyplePlugin : Plugin<Project> {
         project.task("setVersion")
             .doFirst(this::setVersion)
 
-        project.task("getLastAlphaVersion")
-            .doFirst(this::getLastAlphaVersion)
-
-        project.task("setNextAlphaVersion")
-            .doFirst(this::setNextAlphaVersion)
-            .finalizedBy("setVersion")
-
         project.task("listAvailableLicenses").apply {
             group = "documentation"
             description = "Lists the available license types for 'licenseType'."
@@ -247,26 +240,6 @@ class KeyplePlugin : Plugin<Project> {
         }
 
         println("Setting new version for ${task.project.name} to $version")
-    }
-
-    /**
-     * Prints to console the last alpha released version found on Maven Central
-     * Usage: ./gradlew getLastAlphaVersion
-     */
-    fun getLastAlphaVersion(task: Task) {
-        val lastVersion = versioning
-            .getLastAlphaVersionFrom(task.project.version as String)
-        println("Looking for alpha in ${task.project.version}, found: $lastVersion")
-    }
-
-    /**
-     * Sets the next alpha version to be released based on last one found on Maven Central
-     * Usage: ./gradlew setNextAlphaVersion
-     */
-    fun setNextAlphaVersion(task: Task) {
-        val nextVersion = versioning
-            .getNextAlphaVersionFrom(task.project.version as String)
-        task.project.version = nextVersion
     }
 
     fun configurePublishing(project: Project): Action<PublishingExtension> {
