@@ -7,19 +7,16 @@ import org.gradle.api.Project
 
 class KeypleVersioning {
 
-  var repoServer = "https://ossrh-staging-api.central.sonatype.com"
+  var releasesRepo = "https://repo.maven.apache.org/maven2/"
   var isAlreadyReleased = false
-  val snapshotsRepo
-    get() = "${repoServer}/content/repositories/snapshots/"
+  val stagingEndpoint
+    get() = "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
 
-  val releasesRepo
-    get() = "${repoServer}/content/repositories/releases/"
-
-  val stagingRepo
-    get() = "${repoServer}/service/local/staging/deploy/maven2/"
+  val snapshotsEndpoint
+    get() = "https://central.sonatype.com/repository/maven-snapshots/"
 
   fun init(project: Project) {
-    project.prop("sonatype.url")?.let { repoServer = it }
+    project.prop("sonatype.url")?.let { releasesRepo = it }
     checkIfAlreadyReleased(project)
   }
 

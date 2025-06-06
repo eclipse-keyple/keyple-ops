@@ -105,7 +105,7 @@ class KeyplePlugin : Plugin<Project> {
                 ?.repositories
                 ?.first { it.name == "keypleRepo" }
                 ?.let { it as MavenArtifactRepository }
-                ?.apply { url = project.uri(versioning.stagingRepo) }
+                ?.apply { url = project.uri(versioning.stagingEndpoint) }
           }
           .finalizedBy("publish")
     }
@@ -272,7 +272,7 @@ class KeyplePlugin : Plugin<Project> {
           project.prop("centralUsername")?.let(it::setUsername)
           project.prop("centralPassword")?.let(it::setPassword)
         }
-        maven.url = project.uri(versioning.snapshotsRepo)
+        maven.url = project.uri(versioning.snapshotsEndpoint)
       }
       if (project.hasProperty("signing.keyId")) {
         project.plugins.apply("signing")
