@@ -1,3 +1,13 @@
+![Deprecated](https://img.shields.io/badge/status-deprecated-red)
+
+> ⚠️ **This project is deprecated.**
+
+This repository is no longer actively maintained.  
+All CI workflows have been migrated to centralized [GitHub Actions](https://github.com/eclipse-keyple/keyple-actions)
+for the entire Eclipse Keyple project family.
+
+You are encouraged to use or contribute to the centralized CI setup instead.
+
 # 'Eclipse Keyple' OPS   
 
 This is the repository for the Ops settings of the '[Eclipse Keyple](https://keyple.org/)' project.
